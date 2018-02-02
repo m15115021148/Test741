@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Test741</string>
+
+    <string name="cpu_core_number">CPU 核数: </string>
+    <string name="cpu_bits">CPU 位数: </string>
+    <string name="cpu_bits_64">64 位 </string>
+    <string name="cpu_bits_32">32 位 </string>
+    <string name="cpu_abi">CPU 指令集: </string>
+    <string name="cpu_plateform">CPU 平台信息: </string>
+    <string name="cpu_processor">CPU 架构: </string>
+    <string name="cpu_max_freq">CPU 最大频率: </string>
+    <string name="cpu_min_freq">CPU 最小频率: </string>
+    <string name="cpu_hz">&#160;Hz </string>
+    <string name="cpu_available_frequencies">CPU 频率档位: </string>
+    <string name="cpu_cur_governor">CPU 当前调频策略: </string>
+    <string name="cpu_available_governors">CPU 支持的调频策略: </string>
+</resources>
