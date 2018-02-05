@@ -5,7 +5,6 @@ import android.content.IntentFilter;
 import android.os.PowerManager;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -17,8 +16,6 @@ import com.meigsmart.test741.config.RequestCode;
 import com.meigsmart.test741.db.TypeModel;
 import com.meigsmart.test741.util.DateUtil;
 import com.meigsmart.test741.util.PreferencesUtil;
-
-
 
 public class MainActivity extends BaseActivity {
     private TextView mTitle;

@@ -13,12 +13,13 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+
 /**
  * Created by chenMeng on 2018/2/1.
  */
 
-public class CpuService2 extends Service {
-
+public class CpuService4 extends Service implements Runnable{
+    private int sum = 1;
     @SuppressLint("HandlerLeak")
     private Handler mHandler = new Handler(){
         @Override
@@ -26,19 +27,25 @@ public class CpuService2 extends Service {
             super.handleMessage(msg);
             switch (msg.what){
                 case 1001:
-                    readFromResets();
+                    sum = sum*1000+1;
+                    mHandler.postDelayed(CpuService4.this,1000);
                     break;
             }
         }
     };
 
+    @Override
+    public void run() {
+        mHandler.sendEmptyMessage(1001);
+    }
+
     public class MyBinder extends Binder {
-        public CpuService2 getService() {
-            return CpuService2.this;
+        public CpuService4 getService() {
+            return CpuService4.this;
         }
     }
 
-    private CpuService2.MyBinder binder = new CpuService2.MyBinder();
+    private MyBinder binder = new MyBinder();
 
     @Override
     public void onCreate() {
@@ -47,8 +54,8 @@ public class CpuService2 extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.e("result","r:"+CpuService2.class.getName());
-        readFromResets();
+        Log.e("result","r:"+CpuService4.class.getName());
+        mHandler.post(this);
         return START_STICKY;
     }
 
@@ -65,27 +72,8 @@ public class CpuService2 extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        mHandler.removeCallbacks(this);
         mHandler.removeMessages(1001);
-    }
-
-    public void readFromResets() {
-        try {
-            InputStream is = this.getAssets().open("memory.txt");
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(is,"UTF-8"));
-            StringBuffer sb = new StringBuffer();
-            String line = br.readLine();
-            while(line != null){
-                sb.append(line).append("\n");
-                line = br.readLine();
-            }
-            br.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            mHandler.sendEmptyMessage(1001);
-        }
-
     }
 
 }

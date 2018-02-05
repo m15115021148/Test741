@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.meigsmart.test741">
+    package="com.meigsmart.test741"
+    android:sharedUserId="android.uid.system">
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -49,6 +50,17 @@
             android:permission="true" />
         <service
             android:name=".service.CpuService3"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="true" />
+
+        <service
+            android:name=".service.CpuService4"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="true" />
+        <service
+            android:name=".service.CpuService5"
             android:enabled="true"
             android:exported="true"
             android:permission="true" />

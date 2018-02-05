@@ -7,10 +7,16 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.util.Log;
+
+import com.meigsmart.test741.util.FileUtil;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 
 
 /**
@@ -18,6 +24,8 @@ import java.io.InputStreamReader;
  */
 
 public class CpuService3 extends Service {
+    private String path ;
+    private String data = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttteeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrryyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy";
 
     @SuppressLint("HandlerLeak")
     private Handler mHandler = new Handler(){
@@ -26,7 +34,7 @@ public class CpuService3 extends Service {
             super.handleMessage(msg);
             switch (msg.what){
                 case 1001:
-                    readFromResets();
+                    writeFile(path,data);
                     break;
             }
         }
@@ -47,7 +55,9 @@ public class CpuService3 extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        readFromResets();
+        Log.e("result","r:"+CpuService3.class.getName());
+        path = FileUtil.createSDPath("writecpu.txt");
+        writeFile(path,data);
         return START_STICKY;
     }
 
@@ -64,26 +74,25 @@ public class CpuService3 extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        mHandler.removeMessages(1001);
     }
 
-    public void readFromResets() {
+    private void writeFile(String path,String data){
         try {
-            InputStream is = this.getAssets().open("memory.txt");
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(is,"UTF-8"));
-            StringBuffer sb = new StringBuffer();
-            String line = br.readLine();
-            while(line != null){
-                sb.append(line).append("\n");
-                line = br.readLine();
+            OutputStream out = new FileOutputStream(path);
+            InputStream is = new ByteArrayInputStream(data.getBytes());
+            byte[] buff = new byte[1];
+            int len = 0;
+            while((len=is.read(buff))!=-1){
+                out.write(buff, 0, len);
             }
-            br.close();
+            is.close();
+            out.close();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             mHandler.sendEmptyMessage(1001);
         }
-
     }
 
 }

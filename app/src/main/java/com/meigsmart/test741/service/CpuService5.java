@@ -13,11 +13,12 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+
 /**
  * Created by chenMeng on 2018/2/1.
  */
 
-public class CpuService2 extends Service {
+public class CpuService5 extends Service {
 
     @SuppressLint("HandlerLeak")
     private Handler mHandler = new Handler(){
@@ -33,12 +34,12 @@ public class CpuService2 extends Service {
     };
 
     public class MyBinder extends Binder {
-        public CpuService2 getService() {
-            return CpuService2.this;
+        public CpuService5 getService() {
+            return CpuService5.this;
         }
     }
 
-    private CpuService2.MyBinder binder = new CpuService2.MyBinder();
+    private MyBinder binder = new MyBinder();
 
     @Override
     public void onCreate() {
@@ -47,7 +48,7 @@ public class CpuService2 extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.e("result","r:"+CpuService2.class.getName());
+        Log.e("result","r:"+CpuService5.class.getName());
         readFromResets();
         return START_STICKY;
     }

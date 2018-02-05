@@ -11,26 +11,27 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
-//    signingConfigs {
-//        release {
-//            storeFile file('E:/MeiGApp/key/meiglink.jks')
-//            storePassword '123456'
-//            keyAlias 'meiglink'
-//            keyPassword '123456'
-//        }
-//    }
-
+    signingConfigs {
+        sginconfig {
+            keyAlias 'platform'
+            keyPassword 'android'
+            storeFile file('debug.keystore')
+            storePassword 'android'
+        }
+    }
     buildTypes {
         release {
+            signingConfig signingConfigs.sginconfig
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-//            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
-
-//        debug {
-//            signingConfig signingConfigs.release
-//        }
+        debug {
+            signingConfig signingConfigs.sginconfig
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
     }
+
 }
 
 dependencies {

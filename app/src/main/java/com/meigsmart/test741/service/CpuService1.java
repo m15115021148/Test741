@@ -1,49 +1,49 @@
 package com.meigsmart.test741.service;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
-import android.os.Binder;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
 
 
 /**
  * Created by chenMeng on 2018/2/1.
  */
 
-public class CpuService1 extends Service implements Runnable{
-    private int sum = 0;
+public class CpuService1 extends Service {
+    private Looper mServiceLooper;
 
-    private Handler mHandler = new Handler();
+    @SuppressLint("HandlerLeak")
+    private Handler mHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            Intent intent = (Intent)msg.obj;
 
-    @Override
-    public void run() {
-        sum++;
-        mHandler.postDelayed(this,1000);
-    }
-
-    public class MyBinder extends Binder {
-        public CpuService1 getService() {
-            return CpuService1.this;
         }
-    }
-
-    private CpuService1.MyBinder binder = new CpuService1.MyBinder();
+    };
 
     @Override
     public void onCreate() {
-        super.onCreate();
+        HandlerThread handlerthread = new HandlerThread("CpuService1");
+        handlerthread.start();
+        mServiceLooper = handlerthread.getLooper();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        mHandler.post(this);
+        Message message = mHandler.obtainMessage();
+        mHandler.sendMessage(message);
         return START_STICKY;
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-        return binder;
+        return null;
     }
 
     @Override
