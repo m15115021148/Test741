@@ -20,6 +20,11 @@
         <activity
             android:name=".activity.MainActivity"
             android:launchMode="singleTop">
+
+        </activity>
+
+        <activity android:name=".activity.SplashActivity"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -37,30 +42,8 @@
             android:name=".MusicService"
             android:enabled="true"
             android:exported="true" />
-
         <service
             android:name=".service.CpuService1"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="true" />
-        <service
-            android:name=".service.CpuService2"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="true" />
-        <service
-            android:name=".service.CpuService3"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="true" />
-
-        <service
-            android:name=".service.CpuService4"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="true" />
-        <service
-            android:name=".service.CpuService5"
             android:enabled="true"
             android:exported="true"
             android:permission="true" />
@@ -80,6 +63,7 @@
         <activity
             android:name=".activity.AudioActivity"
             android:launchMode="singleTop" />
+
     </application>
 
 </manifest>

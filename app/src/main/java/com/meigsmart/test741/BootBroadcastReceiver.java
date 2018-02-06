@@ -8,8 +8,8 @@ import android.util.Log;
 
 import com.meigsmart.test741.activity.AudioActivity;
 import com.meigsmart.test741.activity.CpuActivity;
-import com.meigsmart.test741.activity.MainActivity;
 import com.meigsmart.test741.activity.MemoryActivity;
+import com.meigsmart.test741.activity.SplashActivity;
 import com.meigsmart.test741.activity.TestActivity;
 import com.meigsmart.test741.activity.VideoActivity;
 import com.meigsmart.test741.config.RequestCode;
@@ -29,7 +29,7 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
         Log.e("result","action:"+action);
 
         if (action.equals(ACTION)) {
-            Intent main = new Intent(context, MainActivity.class);
+            Intent main = new Intent(context, SplashActivity.class);
             main.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(main);
         } else if (action.equals(RequestCode.ANDROID_REBOOT)){

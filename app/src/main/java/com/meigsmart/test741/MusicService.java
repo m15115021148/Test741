@@ -10,8 +10,10 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.text.TextUtils;
 
+import com.meigsmart.test741.config.RequestCode;
 import com.meigsmart.test741.db.TypeModel;
 import com.meigsmart.test741.util.DateUtil;
+import com.meigsmart.test741.util.PreferencesUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,6 +72,7 @@ public class MusicService extends Service {
                         mp.seekTo(0);
                         mp.start();
                     }else{
+                        PreferencesUtil.setStringData(getApplicationContext(),"type", RequestCode.ANDROID_VIDEO);
                         MyApplication.getInstance().mDb.update(model.getType(),0,1);
                         isPlay = false;
                         mp.stop();

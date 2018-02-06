@@ -2,7 +2,6 @@ package com.meigsmart.test741;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +10,7 @@ import android.widget.TextView;
 
 import com.meigsmart.test741.config.RequestCode;
 import com.meigsmart.test741.db.TypeModel;
+import com.meigsmart.test741.model.ResultModel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -130,8 +130,8 @@ public class MainAdapter extends BaseAdapter {
         holder.name.setText(model.getName());
 
         if (model.getIsPass() == 0){
-            holder.result.setText("");
-            holder.result.setTextColor(Color.parseColor("#000000"));
+            holder.result.setText("待测试");
+            holder.result.setTextColor(Color.parseColor("#888888"));
         }else if (model.getIsPass() == 1){
             holder.result.setText("PASS");
             holder.result.setTextColor(Color.parseColor("#499AFA"));

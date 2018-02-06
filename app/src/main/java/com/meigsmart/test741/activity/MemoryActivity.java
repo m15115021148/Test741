@@ -5,24 +5,25 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.meigsmart.test741.MyApplication;
 import com.meigsmart.test741.R;
+import com.meigsmart.test741.config.RequestCode;
 import com.meigsmart.test741.db.TypeModel;
 import com.meigsmart.test741.util.DateUtil;
 import com.meigsmart.test741.util.FileUtil;
+import com.meigsmart.test741.util.PreferencesUtil;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 
 public class MemoryActivity extends BaseActivity {
@@ -53,8 +54,8 @@ public class MemoryActivity extends BaseActivity {
         if (mBroadType == 1) {
             path = FileUtil.createInnerPath("test.txt");
             String type = getIntent().getStringExtra("type");
-            int time = getIntent().getIntExtra("time", 0);
-            String path = getIntent().getStringExtra("filepath");
+            int time = Integer.parseInt(PreferencesUtil.getStringData(this,"time"));
+            String path = "";
 
             MyApplication.getInstance().mDb.delete(type);
 
@@ -75,8 +76,8 @@ public class MemoryActivity extends BaseActivity {
             path = FileUtil.createSDPath("test.txt");
 
             String type = getIntent().getStringExtra("type");
-            int time = getIntent().getIntExtra("time", 0);
-            String path = getIntent().getStringExtra("filepath");
+            int time = Integer.parseInt(PreferencesUtil.getStringData(this,"time"));
+            String path = "";
 
             MyApplication.getInstance().mDb.delete(type);
 
@@ -95,16 +96,19 @@ public class MemoryActivity extends BaseActivity {
     }
 
     private void init(final String path) {
-        if (TextUtils.isEmpty(path)) return;
-        File file = new File(path);
-        if (file.exists()) {
-            type = 1;
-            length = (int) file.length();
-            mProgress.setMax(length);//设置进度条最大值
+        if (TextUtils.isEmpty(path)){
+            type =0;
         }else{
-            error();
-            Toast.makeText(this,"路径不存在",Toast.LENGTH_SHORT).show();
-            return;
+            File file = new File(path);
+            if (file.exists()) {
+                type = 1;
+                length = (int) file.length();
+                mProgress.setMax(length);//设置进度条最大值
+            }else{
+                error();
+                Toast.makeText(this,"路径不存在",Toast.LENGTH_SHORT).show();
+                return;
+            }
         }
 
         Thread thread = new Thread() {
@@ -125,6 +129,7 @@ public class MemoryActivity extends BaseActivity {
     @Override
     protected void error(){
         if (model != null){
+            PreferencesUtil.setStringData(MemoryActivity.this,"type", RequestCode.ANDROID_ERROR);
             MyApplication.getInstance().mDb.update(model.getType(),0,2);
         }
         this.finish();
@@ -133,6 +138,11 @@ public class MemoryActivity extends BaseActivity {
     @Override
     protected void success(){
         if (model != null){
+            if (mBroadType == 1){
+                PreferencesUtil.setStringData(MemoryActivity.this,"type", RequestCode.ANDROID_AUDIO);
+            }else{
+                PreferencesUtil.setStringData(MemoryActivity.this,"type", RequestCode.ANDROID_MEMORY);
+            }
             MyApplication.getInstance().mDb.update(model.getType(),0,1);
         }
     }
@@ -158,6 +168,15 @@ public class MemoryActivity extends BaseActivity {
         exit();
         this.finish();
         super.onBackPressed();
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            moveTaskToBack(false);
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     @SuppressLint("HandlerLeak")
@@ -286,27 +305,29 @@ public class MemoryActivity extends BaseActivity {
 
     public void readFromResets() {
         try {
+            int line;
             InputStream is = this.getAssets().open("memory.txt");
 
             length = is.available();
             mProgress.setMax(length);//设置进度条最大值
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(is,"UTF-8"));
+            DataInputStream dis = new DataInputStream(is);
             StringBuffer sb = new StringBuffer();
-            String line = br.readLine();
-            while(line != null){
-                sb.append(line).append("\n");
-                line=br.readLine();
+            byte b[] = new byte[1];
+            while ((line = dis.read(b)) != -1) {
+                String mData = new String(b, 0, line);
+                sb.append(mData);
                 Message msg = new Message();
                 msg.what = 1003;
-                msg.arg1 = line.length();
+                msg.arg1 = line;
                 msg.obj = sb.toString();
                 mHandler.sendMessage(msg);
-                Thread.sleep(10);
+                Thread.sleep(50);
             }
-            br.close();
+            dis.close();
+            is.close();
         } catch (Exception e) {
             e.printStackTrace();
+            error();
         }
 
     }

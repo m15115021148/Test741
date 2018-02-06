@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 
 import com.meigsmart.test741.db.TestDao;
+import com.meigsmart.test741.log.CrashHandler;
 
 /**
  * Created by chenMeng on 2018/1/30.
@@ -17,6 +18,7 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         mDb = new TestDao(this);
+        CrashHandler.getInstance().init(this);
     }
 
     public static MyApplication getInstance(){

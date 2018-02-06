@@ -1,9 +1,12 @@
 package com.meigsmart.test741.activity;
 
 import android.annotation.SuppressLint;
+import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -12,8 +15,10 @@ import android.widget.Toast;
 
 import com.meigsmart.test741.MyApplication;
 import com.meigsmart.test741.R;
+import com.meigsmart.test741.config.RequestCode;
 import com.meigsmart.test741.db.TypeModel;
 import com.meigsmart.test741.util.DateUtil;
+import com.meigsmart.test741.util.PreferencesUtil;
 
 import java.io.File;
 
@@ -53,8 +58,8 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
         if (mBroadType == 1){
 
             String type = getIntent().getStringExtra("type");
-            int time = getIntent().getIntExtra("time",0);
-            String path = getIntent().getStringExtra("filepath");
+            int time = Integer.parseInt(PreferencesUtil.getStringData(this,"time"));
+            String path = "";
 
             MyApplication.getInstance().mDb.delete(type);
 
@@ -76,6 +81,7 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
     @Override
     protected void error(){
         if (model != null){
+            PreferencesUtil.setStringData(this,"type", RequestCode.ANDROID_ERROR);
             MyApplication.getInstance().mDb.update(model.getType(),0,2);
         }
     }
@@ -83,6 +89,7 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
     @Override
     protected void success(){
         if (model != null){
+            PreferencesUtil.setStringData(this,"type", RequestCode.ANDROID_LCD);
             MyApplication.getInstance().mDb.update(model.getType(),0,1);
         }
     }
@@ -96,10 +103,16 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
 
     private boolean init(String filepath){
         if (TextUtils.isEmpty(filepath)){
-            error();
-            Toast.makeText(this,"路径不能为空",Toast.LENGTH_SHORT).show();
-            this.finish();
-            return false;
+            try {
+                AssetManager assetMg = this.getApplicationContext().getAssets();
+                AssetFileDescriptor fileDescriptor = assetMg.openFd("test1.mp4");
+                player.setDataSource(fileDescriptor.getFileDescriptor(), fileDescriptor.getStartOffset(), fileDescriptor.getLength());
+                return true;
+            } catch (Exception e) {
+                error();
+                this.finish();
+                e.printStackTrace();
+            }
         }else{
             File file = new File(filepath);
             if (file.exists()){
@@ -156,7 +169,7 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         if (isPlay){
-            player.setLooping(true);
+            player.setLooping(false);
             player.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
             player.setDisplay(holder);
             player.prepareAsync();
@@ -221,9 +234,10 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
 
     @Override
     public void onCompletion(MediaPlayer player) {
-        if (model!=null && !TextUtils.isEmpty(model.getStartTime())){
-            int allTime = model.getAllTime();
-            if (DateUtil.getTimeInterval(DateUtil.getCurrentDate(),model.getStartTime())<=allTime*60){
+        TypeModel data = MyApplication.getInstance().mDb.getData(RequestCode.ANDROID_VIDEO);
+        if (data!=null && !TextUtils.isEmpty(data.getStartTime())){
+            int allTime = data.getAllTime();
+            if (DateUtil.getTimeInterval(DateUtil.getCurrentDate(),data.getStartTime())<=allTime*60){
                 player.seekTo(0);
                 player.start();
             }else{

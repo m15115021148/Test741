@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.LinearLayout;
@@ -46,7 +47,7 @@ public class TestActivity extends BaseActivity {
 
         if (mBroadType == 1){
             String type = getIntent().getStringExtra("type");
-            int time = getIntent().getIntExtra("time",0);
+            int time = Integer.parseInt(PreferencesUtil.getStringData(this,"time"));
 
             MyApplication.getInstance().mDb.delete(type);
 
@@ -61,28 +62,6 @@ public class TestActivity extends BaseActivity {
             MyApplication.getInstance().mDb.addData(model);
 
             init();
-        } else if (mBroadType == 2){
-            mTitle.setText("REBOOT TEST");
-
-            String type = getIntent().getStringExtra("type");
-            int time = getIntent().getIntExtra("time",0);
-            PreferencesUtil.setStringData(this,"type",type);
-
-            MyApplication.getInstance().mDb.delete(type);
-
-            model = new TypeModel();
-            model.setType(type);
-            model.setAllTime(time);
-            model.setStartTime(DateUtil.getCurrentDate());
-            model.setFilepath("");
-            model.setIsRun(1);
-            model.setIsPass(0);
-
-            MyApplication.getInstance().mDb.addData(model);
-
-            // 重启
-            PowerManager pManager=(PowerManager) getSystemService(Context.POWER_SERVICE);
-            pManager.reboot("重启");
         }
 
     }
@@ -90,6 +69,7 @@ public class TestActivity extends BaseActivity {
     @Override
     protected void error(){
         if (model != null){
+            PreferencesUtil.setStringData(this,"type", RequestCode.ANDROID_ERROR);
             MyApplication.getInstance().mDb.update(model.getType(),0,2);
         }
         this.finish();
@@ -98,6 +78,7 @@ public class TestActivity extends BaseActivity {
     @Override
     protected void success(){
         if (model != null){
+            PreferencesUtil.setStringData(this,"type", RequestCode.ANDROID_SUCCESS);
             MyApplication.getInstance().mDb.update(model.getType(),0,1);
         }
     }
@@ -122,6 +103,15 @@ public class TestActivity extends BaseActivity {
         exit();
         this.finish();
         super.onBackPressed();
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            moveTaskToBack(false);
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     private void init(){
@@ -170,7 +160,6 @@ public class TestActivity extends BaseActivity {
     };
 
     private void initLcd(){
-        int time = model.getAllTime();
         timerTask = new TimerTask() {
             @Override
             public void run() {
@@ -178,7 +167,7 @@ public class TestActivity extends BaseActivity {
             }
         };
         timer = new Timer();
-        timer.schedule(timerTask, 0, time*60/5*1000);
+        timer.schedule(timerTask, 0, 2000);
     }
 
 }

@@ -6,18 +6,16 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.widget.TextView;
 
 import com.meigsmart.test741.MyApplication;
 import com.meigsmart.test741.R;
+import com.meigsmart.test741.config.RequestCode;
 import com.meigsmart.test741.db.TypeModel;
 import com.meigsmart.test741.service.CpuService1;
-import com.meigsmart.test741.service.CpuService2;
-import com.meigsmart.test741.service.CpuService3;
-import com.meigsmart.test741.service.CpuService4;
-import com.meigsmart.test741.service.CpuService5;
-import com.meigsmart.test741.util.CpuMessage;
 import com.meigsmart.test741.util.DateUtil;
+import com.meigsmart.test741.util.PreferencesUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,17 +23,13 @@ import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.text.NumberFormat;
 
-public class CpuActivity extends BaseActivity {
+public class CpuActivity extends BaseActivity implements Runnable{
     private TextView mTitle;
     private TextView mResult;
 
     private int mBroadType = 0;
     private TypeModel model;
     private Intent intent1;
-    private Intent intent2;
-    private Intent intent3;
-    private Intent intent4;
-    private Intent intent5;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +43,7 @@ public class CpuActivity extends BaseActivity {
 
         if (mBroadType == 1) {
             String type = getIntent().getStringExtra("type");
-            int time = getIntent().getIntExtra("time", 0);
+            int time = Integer.parseInt(PreferencesUtil.getStringData(this,"time"));
 
             MyApplication.getInstance().mDb.delete(type);
 
@@ -70,6 +64,7 @@ public class CpuActivity extends BaseActivity {
     @Override
     protected void error() {
         if (model != null) {
+            PreferencesUtil.setStringData(this,"type", RequestCode.ANDROID_ERROR);
             MyApplication.getInstance().mDb.update(model.getType(), 0, 2);
         }
         this.finish();
@@ -78,6 +73,7 @@ public class CpuActivity extends BaseActivity {
     @Override
     protected void success() {
         if (model != null) {
+            PreferencesUtil.setStringData(this,"type", RequestCode.ANDROID_EMMC);
             MyApplication.getInstance().mDb.update(model.getType(), 0, 1);
         }
     }
@@ -93,7 +89,9 @@ public class CpuActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         stopService();
+        mHandler.removeCallbacks(CpuActivity.this);
         mHandler.removeMessages(1001);
+        mHandler.removeMessages(1002);
     }
 
     @Override
@@ -101,6 +99,15 @@ public class CpuActivity extends BaseActivity {
         exit();
         this.finish();
         super.onBackPressed();
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            moveTaskToBack(false);
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     private void init() {
@@ -111,26 +118,10 @@ public class CpuActivity extends BaseActivity {
     public void startService() {
         intent1 = new Intent(this, CpuService1.class);
         startService(intent1);
-
-        intent2 = new Intent(this, CpuService2.class);
-        startService(intent2);
-
-        intent3 = new Intent(this, CpuService3.class);
-        startService(intent3);
-
-        intent4 = new Intent(this, CpuService4.class);
-        startService(intent4);
-
-        intent5 = new Intent(this, CpuService5.class);
-        startService(intent5);
     }
 
     private void stopService() {
         stopService(intent1);
-        stopService(intent2);
-        stopService(intent3);
-        stopService(intent4);
-        stopService(intent5);
     }
 
     private int getProcessCpuRate() {
@@ -174,18 +165,22 @@ public class CpuActivity extends BaseActivity {
             super.handleMessage(msg);
             switch (msg.what) {
                 case 1001:
-//                    NumberFormat nf = NumberFormat.getNumberInstance();
-//                    nf.setMaximumFractionDigits(2);
-//                    mResult.setText("CPU使用率："+nf.format(Double.parseDouble(msg.obj.toString()))+"%");
-                    mResult.setText("CPU使用率：" + readUsage() + "%");
+                    NumberFormat nf = NumberFormat.getNumberInstance();
+                    nf.setMaximumFractionDigits(2);
+                    mHandler.sendEmptyMessage(1002);
+                    mResult.setText("CPU使用率：" + nf.format(readUsage() )+ "%");
+
                     if (model != null) {
                         if (DateUtil.getTimeInterval(DateUtil.getCurrentDate(), model.getStartTime()) >= model.getAllTime() * 60) {
                             success();
                             stopService();
+                            mHandler.removeCallbacks(CpuActivity.this);
                             mHandler.removeMessages(1001);
+                            mHandler.removeMessages(1002);
                             CpuActivity.this.finish();
                         }
                     }
+                    mHandler.postDelayed(CpuActivity.this,1000);
                     break;
                 case 1002:
                     useCpu();
@@ -196,16 +191,7 @@ public class CpuActivity extends BaseActivity {
 
 
     private void calculateCpuUsage() {
-        new Thread(new Runnable() {
-            public void run() {
-                runOnUiThread(new Runnable() {
-                                  public void run() {
-                                      mHandler.sendEmptyMessageDelayed(1001, 1000L);
-                                  }
-                              }
-                );
-            }
-        }).start();
+        mHandler.post(this);
     }
 
     private float readUsage() {
@@ -246,7 +232,8 @@ public class CpuActivity extends BaseActivity {
         (new Thread(new Runnable() {
 
             public void run() {
-                int i = 0x1dcd6500;
+//                int i = 150000000;
+                int i = 10000;
                 do {
                     if (i == 1) {
                         runOnUiThread(new Runnable() {
@@ -263,4 +250,8 @@ public class CpuActivity extends BaseActivity {
         }, "UseCpu")).start();
     }
 
+    @Override
+    public void run() {
+        mHandler.sendEmptyMessage(1001);
+    }
 }

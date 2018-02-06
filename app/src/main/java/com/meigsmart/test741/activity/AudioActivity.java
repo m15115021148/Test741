@@ -17,8 +17,10 @@ import android.widget.TextView;
 import com.meigsmart.test741.MusicService;
 import com.meigsmart.test741.MyApplication;
 import com.meigsmart.test741.R;
+import com.meigsmart.test741.config.RequestCode;
 import com.meigsmart.test741.db.TypeModel;
 import com.meigsmart.test741.util.DateUtil;
+import com.meigsmart.test741.util.PreferencesUtil;
 
 import java.text.SimpleDateFormat;
 
@@ -39,7 +41,6 @@ public class AudioActivity extends BaseActivity implements Runnable{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_audio);
         mTitle = (TextView)findViewById(R.id.title);
         mCurrTime = (TextView)findViewById(R.id.MusicTime);
@@ -52,8 +53,8 @@ public class AudioActivity extends BaseActivity implements Runnable{
 
         if (mBroadType == 1){
             String type = getIntent().getStringExtra("type");
-            int time = getIntent().getIntExtra("time",0);
-            String path = getIntent().getStringExtra("filepath");
+            int time = Integer.parseInt(PreferencesUtil.getStringData(this,"time"));
+            String path = "";
 
             MyApplication.getInstance().mDb.delete(type);
 
@@ -74,6 +75,7 @@ public class AudioActivity extends BaseActivity implements Runnable{
     @Override
     protected void error(){
         if (model != null){
+            PreferencesUtil.setStringData(this,"type", RequestCode.ANDROID_ERROR);
             MyApplication.getInstance().mDb.update(model.getType(),0,2);
         }
         this.finish();
@@ -82,6 +84,7 @@ public class AudioActivity extends BaseActivity implements Runnable{
     @Override
     protected void success(){
         if (model != null){
+            PreferencesUtil.setStringData(this,"type", RequestCode.ANDROID_VIDEO);
             MyApplication.getInstance().mDb.update(model.getType(),0,1);
         }
     }
