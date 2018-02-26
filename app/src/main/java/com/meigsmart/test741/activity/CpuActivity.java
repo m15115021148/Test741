@@ -168,7 +168,7 @@ public class CpuActivity extends BaseActivity implements Runnable{
                     NumberFormat nf = NumberFormat.getNumberInstance();
                     nf.setMaximumFractionDigits(2);
                     mHandler.sendEmptyMessage(1002);
-                    mResult.setText("CPU使用率：" + nf.format(readUsage() )+ "%");
+                    mResult.setText("CPU使用率：" + nf.format(getProcessCpuRate() )+ "%");
 
                     if (model != null) {
                         if (DateUtil.getTimeInterval(DateUtil.getCurrentDate(), model.getStartTime()) >= model.getAllTime() * 60) {
@@ -233,7 +233,7 @@ public class CpuActivity extends BaseActivity implements Runnable{
 
             public void run() {
 //                int i = 150000000;
-                int i = 10000;
+                int i = 9999999;
                 do {
                     if (i == 1) {
                         runOnUiThread(new Runnable() {

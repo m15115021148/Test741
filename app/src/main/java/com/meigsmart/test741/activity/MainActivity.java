@@ -36,7 +36,7 @@ public class MainActivity extends BaseActivity {
         initListView();
 
         int time = 60/7;
-        time = 1;
+        //time = 1;
         PreferencesUtil.setStringData(this,"time",String.valueOf(time));
 
     }
