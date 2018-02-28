@@ -2,6 +2,7 @@ package com.meigsmart.test741;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,45 +27,51 @@ public class MainAdapter extends BaseAdapter {
     private List<ResultModel> mList;
     private Holder holder;
     private Map<Integer,ResultModel> map = new HashMap<Integer,ResultModel>();
+    private OnMainCallBack mCallBack;
 
-    public MainAdapter(Context context){
+    public MainAdapter(Context context,OnMainCallBack callBack){
         this.mContext = context;
+        this.mCallBack = callBack;
         this.mList = getData();
+    }
+
+    public interface OnMainCallBack{
+        void onOver();
     }
 
     private List<ResultModel> getData(){
         List<ResultModel> data = new ArrayList<ResultModel>();
         ResultModel m1 = new ResultModel();
-        m1.setName("REBOOT TEST");
+        m1.setName("EMMC TEST");
         m1.setIsPass(0);
 
         ResultModel m2 = new ResultModel();
-        m2.setName("CPU TEST");
+        m2.setName("MEMORY TEST");
         m2.setIsPass(0);
 
         ResultModel m3 = new ResultModel();
-        m3.setName("EMMC TEST");
+        m3.setName("AUDIO TEST");
         m3.setIsPass(0);
 
         ResultModel m4 = new ResultModel();
-        m4.setName("MEMORY TEST");
+        m4.setName("VIDEO TEST");
         m4.setIsPass(0);
 
         ResultModel m5 = new ResultModel();
-        m5.setName("AUDIO TEST");
+        m5.setName("LCD TEST");
         m5.setIsPass(0);
 
         ResultModel m6 = new ResultModel();
-        m6.setName("VIDEO TEST");
+        m6.setName("CPU TEST");
         m6.setIsPass(0);
 
         ResultModel m7 = new ResultModel();
-        m7.setName("LCD TEST");
+        m7.setName("REBOOT TEST");
         m7.setIsPass(0);
 
-        map.put(0,m1);map.put(1,m2);map.put(2,m3);
-        map.put(3,m4);map.put(4,m5);map.put(5,m6);
-        map.put(6,m7);
+        map.put(0,m1);
+        map.put(1,m2);map.put(2,m3);map.put(3,m4);
+        map.put(4,m5);map.put(5,m6);map.put(6,m7);
 
         for (int i=0;i<map.size();i++){
             ResultModel m = new ResultModel();
@@ -79,20 +86,21 @@ public class MainAdapter extends BaseAdapter {
     public void setData(List<TypeModel> list){
         for (int i=0;i<list.size();i++){
             TypeModel model = list.get(i);
-            if (RequestCode.ANDROID_REBOOT.equals(model.getType())){
+            if (RequestCode.ANDROID_EMMC.equals(model.getType())){
                 this.mList.get(0).setIsPass(model.getIsPass());
-            } else if (RequestCode.ANDROID_CPU.equals(model.getType())){
-                this.mList.get(1).setIsPass(model.getIsPass());
-            } else if (RequestCode.ANDROID_EMMC.equals(model.getType())){
-                this.mList.get(2).setIsPass(model.getIsPass());
             } else if (RequestCode.ANDROID_MEMORY.equals(model.getType())){
-                this.mList.get(3).setIsPass(model.getIsPass());
+                this.mList.get(1).setIsPass(model.getIsPass());
             } else if (RequestCode.ANDROID_AUDIO.equals(model.getType())){
-                this.mList.get(4).setIsPass(model.getIsPass());
+                this.mList.get(2).setIsPass(model.getIsPass());
             } else if (RequestCode.ANDROID_VIDEO.equals(model.getType())){
-                this.mList.get(5).setIsPass(model.getIsPass());
+                this.mList.get(3).setIsPass(model.getIsPass());
             } else if (RequestCode.ANDROID_LCD.equals(model.getType())){
+                this.mList.get(4).setIsPass(model.getIsPass());
+            } else if (RequestCode.ANDROID_CPU.equals(model.getType())){
+                this.mList.get(5).setIsPass(model.getIsPass());
+            } else if (RequestCode.ANDROID_REBOOT.equals(model.getType())){
                 this.mList.get(6).setIsPass(model.getIsPass());
+                this.mList.get(6).setType(model.getIsRun());
             }
         }
         this.notifyDataSetChanged();
@@ -120,6 +128,7 @@ public class MainAdapter extends BaseAdapter {
             holder = new Holder();
             holder.name = (TextView) convertView.findViewById(R.id.name);
             holder.result = (TextView) convertView.findViewById(R.id.result);
+            holder.over = convertView.findViewById(R.id.over);
             convertView.setTag(holder);
         }else{
             holder = (Holder) convertView.getTag();
@@ -140,10 +149,28 @@ public class MainAdapter extends BaseAdapter {
             holder.result.setTextColor(Color.parseColor("#ff0000"));
         }
 
+        if (model.getName().equals("REBOOT TEST")){
+            if (model.getType() == -1){
+                holder.over.setVisibility(View.VISIBLE);
+            }else{
+                holder.over.setVisibility(View.GONE);
+            }
+        }else{
+            holder.over.setVisibility(View.GONE);
+        }
+
+        holder.over.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mCallBack!=null)mCallBack.onOver();
+            }
+        });
+
         return convertView;
     }
 
     private class Holder{
-        TextView name,result;
+        TextView name,result,over;
     }
+
 }

@@ -1,12 +1,15 @@
 package com.meigsmart.test741.activity;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
 import android.widget.TextView;
 
 import com.meigsmart.test741.MyApplication;
@@ -25,6 +28,7 @@ import java.text.NumberFormat;
 
 public class CpuActivity extends BaseActivity implements Runnable{
     private TextView mTitle;
+    private TextView mOver;
     private TextView mResult;
 
     private int mBroadType = 0;
@@ -35,7 +39,9 @@ public class CpuActivity extends BaseActivity implements Runnable{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cpu);
-        mTitle = (TextView) findViewById(R.id.title);
+        mTitle = findViewById(R.id.include).findViewById(R.id.title);
+        mOver = findViewById(R.id.include).findViewById(R.id.over);
+        mOver.setVisibility(View.VISIBLE);
         mResult = (TextView) findViewById(R.id.result);
         mTitle.setText("CPU TEST");
 
@@ -59,6 +65,28 @@ public class CpuActivity extends BaseActivity implements Runnable{
             init();
         }
 
+        mOver.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(CpuActivity.this);
+                builder.setTitle("提示");
+                builder.setMessage("是否结束测试？");
+                builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        success();
+                        stopService();
+                        mHandler.removeCallbacks(CpuActivity.this);
+                        mHandler.removeMessages(1001);
+                        mHandler.removeMessages(1002);
+                        CpuActivity.this.finish();
+                    }
+                });
+                builder.setNegativeButton("取消",null);
+                builder.create().show();
+            }
+        });
+
     }
 
     @Override
@@ -73,7 +101,7 @@ public class CpuActivity extends BaseActivity implements Runnable{
     @Override
     protected void success() {
         if (model != null) {
-            PreferencesUtil.setStringData(this,"type", RequestCode.ANDROID_EMMC);
+            PreferencesUtil.setStringData(this,"type", RequestCode.ANDROID_REBOOT);
             MyApplication.getInstance().mDb.update(model.getType(), 0, 1);
         }
     }
@@ -233,7 +261,7 @@ public class CpuActivity extends BaseActivity implements Runnable{
 
             public void run() {
 //                int i = 150000000;
-                int i = 9999999;
+                int i = 999999999;
                 do {
                     if (i == 1) {
                         runOnUiThread(new Runnable() {

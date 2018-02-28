@@ -73,6 +73,7 @@ public class SplashActivity extends BaseActivity implements View.OnClickListener
     public void onClick(View v) {
         if (v == mStart) {
             if (isSelect) {
+                PreferencesUtil.isFristLogin(this,"onClickStart",true);
                 PreferencesUtil.isFristLogin(this, "first", true);
                 PreferencesUtil.setStringData(this, "allTime", String.valueOf(mList.get(currPos).getTime()));
                 Intent intent = new Intent(this, MainActivity.class);

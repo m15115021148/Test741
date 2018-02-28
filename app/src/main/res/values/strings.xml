@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Test741</string>
+    <string name="app_name">老化测试</string>
 
     <string name="cpu_core_number">CPU 核数: </string>
     <string name="cpu_bits">CPU 位数: </string>

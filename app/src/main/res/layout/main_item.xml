@@ -7,8 +7,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="40dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:gravity="center_vertical">
 
         <TextView
             android:id="@+id/name"
@@ -19,6 +18,18 @@
             android:singleLine="true"
             android:textColor="#000"
             android:textSize="15sp" />
+
+        <TextView
+            android:visibility="gone"
+            android:id="@+id/over"
+            android:layout_width="60dp"
+            android:layout_height="20dp"
+            android:layout_centerHorizontal="true"
+            android:background="@drawable/over_bg2"
+            android:gravity="center"
+            android:text="OVER"
+            android:textColor="#fff"
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/result"

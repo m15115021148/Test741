@@ -102,17 +102,10 @@ public class MusicService extends Service {
         }
     }
 
-    private void stop(String path) {
+    public void stop() {
         if (mediaPlayer != null) {
             mediaPlayer.stop();
-            try {
-                mediaPlayer.reset();
-                mediaPlayer.setDataSource(path);
-                mediaPlayer.prepare();
-                mediaPlayer.seekTo(0);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            mediaPlayer.release();
         }
     }
 

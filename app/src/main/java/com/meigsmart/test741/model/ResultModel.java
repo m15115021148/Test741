@@ -7,6 +7,15 @@ package com.meigsmart.test741.model;
 public class ResultModel {
     private String name;
     private int isPass = 0;
+    private int type = 0;
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
 
     public String getName() {
         return name;

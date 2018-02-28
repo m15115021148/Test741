@@ -1,7 +1,9 @@
 package com.meigsmart.test741.activity;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,6 +14,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.meigsmart.test741.MyApplication;
@@ -25,8 +28,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class TestActivity extends BaseActivity {
-    private TextView mTitle;
-    private LinearLayout mLayout;
+    private TextView mOver;
+    private RelativeLayout mLayout;
 
     private int mBroadType = 0;
     private int currNum = 0;
@@ -40,9 +43,8 @@ public class TestActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test);
-        mTitle = (TextView) findViewById(R.id.title);
-        mLayout = (LinearLayout) findViewById(R.id.layout);
-        mTitle.setText("741测试");
+        mLayout =  findViewById(R.id.layout);
+        mOver = findViewById(R.id.over);
         mBroadType = getIntent().getIntExtra("broadType",0);
 
         if (mBroadType == 1){
@@ -64,6 +66,27 @@ public class TestActivity extends BaseActivity {
             init();
         }
 
+        mOver.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(TestActivity.this);
+                builder.setTitle("提示");
+                builder.setMessage("是否结束测试？");
+                builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        success();
+                        mHandler.removeMessages(1001);
+                        if (timerTask!=null)timerTask.cancel();
+                        if (timer!=null)timer.cancel();
+                        TestActivity.this.finish();
+                    }
+                });
+                builder.setNegativeButton("取消",null);
+                builder.create().show();
+            }
+        });
+
     }
 
     @Override
@@ -78,7 +101,7 @@ public class TestActivity extends BaseActivity {
     @Override
     protected void success(){
         if (model != null){
-            PreferencesUtil.setStringData(this,"type", RequestCode.ANDROID_SUCCESS);
+            PreferencesUtil.setStringData(this,"type", RequestCode.ANDROID_CPU);
             MyApplication.getInstance().mDb.update(model.getType(),0,1);
         }
     }
@@ -115,7 +138,6 @@ public class TestActivity extends BaseActivity {
     }
 
     private void init(){
-        mTitle.setVisibility(View.GONE);
         initLcd();
     }
 

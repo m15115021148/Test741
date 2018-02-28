@@ -1,6 +1,9 @@
 package com.meigsmart.test741.activity;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.media.MediaPlayer;
@@ -10,9 +13,12 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.meigsmart.test741.MusicService;
 import com.meigsmart.test741.MyApplication;
 import com.meigsmart.test741.R;
 import com.meigsmart.test741.config.RequestCode;
@@ -32,12 +38,14 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
 
     private boolean isPlay;
     private TypeModel model;
+    private TextView mOver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video);
         surfaceView = (SurfaceView)findViewById(R.id.sf);
+        mOver = findViewById(R.id.over);
 
         mBroadType = getIntent().getIntExtra("broadType",0);
 
@@ -76,6 +84,28 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
             isPlay = init(model.getFilepath());
 
         }
+
+        mOver.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(VideoActivity.this);
+                builder.setTitle("提示");
+                builder.setMessage("是否结束测试？");
+                builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        success();
+                        if (player!=null){
+                            player.stop();
+                            player.release();
+                        }
+                        VideoActivity.this.finish();
+                    }
+                });
+                builder.setNegativeButton("取消",null);
+                builder.create().show();
+            }
+        });
     }
 
     @Override

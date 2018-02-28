@@ -1,7 +1,9 @@
 package com.meigsmart.test741.activity;
 
 import android.animation.ObjectAnimator;
+import android.app.AlertDialog;
 import android.content.ComponentName;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
@@ -9,6 +11,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -26,6 +29,7 @@ import java.text.SimpleDateFormat;
 
 public class AudioActivity extends BaseActivity implements Runnable{
     private TextView mTitle;
+    private TextView mOver;
     private TextView mCurrTime,mTotalTime;
     private SeekBar mSb;
     private ImageView mImg;
@@ -37,17 +41,21 @@ public class AudioActivity extends BaseActivity implements Runnable{
     public Handler handler = new Handler();
     private ObjectAnimator animator;
     private TypeModel model;
+    private Intent intentMusic;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_audio);
-        mTitle = (TextView)findViewById(R.id.title);
+        mTitle = findViewById(R.id.include).findViewById(R.id.title);
+        mOver = findViewById(R.id.include).findViewById(R.id.over);
+        mOver.setVisibility(View.VISIBLE);
         mCurrTime = (TextView)findViewById(R.id.MusicTime);
         mTotalTime = (TextView)findViewById(R.id.MusicTotal);
         mSb = (SeekBar)findViewById(R.id.MusicSeekBar);
         mImg = (ImageView)findViewById(R.id.image);
         mTitle.setText("AUDIO TEST");
+
 
         mBroadType = getIntent().getIntExtra("broadType",0);
 
@@ -70,6 +78,28 @@ public class AudioActivity extends BaseActivity implements Runnable{
 
             bindServiceConnection();
         }
+
+        mOver.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(AudioActivity.this);
+                builder.setTitle("提示");
+                builder.setMessage("是否结束测试？");
+                builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        success();
+                        if (musicService!=null)musicService.stop();
+                        handler.removeCallbacks(AudioActivity.this);
+                        unbindService(serviceConnection);
+                        if (intentMusic!=null)stopService(intentMusic);
+                        AudioActivity.this.finish();
+                    }
+                });
+                builder.setNegativeButton("取消",null);
+                builder.create().show();
+            }
+        });
     }
 
     @Override
@@ -110,9 +140,9 @@ public class AudioActivity extends BaseActivity implements Runnable{
     }
 
     private void bindServiceConnection() {
-        Intent intent = new Intent(this, MusicService.class);
-        startService(intent);
-        bindService(intent, serviceConnection, this.BIND_AUTO_CREATE);
+        intentMusic = new Intent(this, MusicService.class);
+        startService(intentMusic);
+        bindService(intentMusic, serviceConnection, this.BIND_AUTO_CREATE);
     }
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
@@ -150,8 +180,7 @@ public class AudioActivity extends BaseActivity implements Runnable{
         }else {
             handler.removeCallbacks(this);
             unbindService(serviceConnection);
-            Intent intent = new Intent(this, MusicService.class);
-            stopService(intent);
+            if (intentMusic!=null)stopService(intentMusic);
             this.finish();
         }
     }

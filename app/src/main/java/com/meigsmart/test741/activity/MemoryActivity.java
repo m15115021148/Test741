@@ -1,11 +1,14 @@
 package com.meigsmart.test741.activity;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
 import android.view.KeyEvent;
+import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,6 +32,7 @@ import java.io.OutputStream;
 public class MemoryActivity extends BaseActivity {
     private TextView mTitle;
     private TextView mResult;
+    private TextView mOver;
     private ProgressBar mProgress;
 
     private int mBroadType = 0;
@@ -44,7 +48,9 @@ public class MemoryActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_memory);
-        mTitle = (TextView) findViewById(R.id.title);
+        mTitle = findViewById(R.id.include).findViewById(R.id.title);
+        mOver = findViewById(R.id.include).findViewById(R.id.over);
+        mOver.setVisibility(View.VISIBLE);
         mResult = (TextView) findViewById(R.id.result);
         mProgress = (ProgressBar) findViewById(R.id.progressBar);
         mTitle.setText("MEMORY TEST");
@@ -93,6 +99,28 @@ public class MemoryActivity extends BaseActivity {
 
             init(model.getFilepath());
         }
+
+        mOver.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(MemoryActivity.this);
+                builder.setTitle("提示");
+                builder.setMessage("是否结束测试？");
+                builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        success();
+                        mHandler.removeMessages(1003);
+                        mHandler.removeMessages(1004);
+                        mHandler.removeMessages(1005);
+                        mHandler.removeMessages(1006);
+                        MemoryActivity.this.finish();
+                    }
+                });
+                builder.setNegativeButton("取消",null);
+                builder.create().show();
+            }
+        });
     }
 
     private void init(final String path) {
