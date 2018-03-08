@@ -36,7 +36,7 @@ public class CrashHandler implements UncaughtExceptionHandler {
     private static final String TAG = CrashHandler.class.getSimpleName();
 
     private static final String SINGLE_RETURN = "\n";
-    private static final String SINGLE_LINE = "--------------------------------";
+    private static final String SINGLE_LINE = "-----------------------------------------------------------------------------------------------------------------------";
 
     private static CrashHandler mCrashHandler;
     private Context mContext;
@@ -118,7 +118,7 @@ public class CrashHandler implements UncaughtExceptionHandler {
     //保存日志到/mnt/sdcard/AppLog/目录下，文件名已时间yyyy-MM-dd_hh-mm-ss.log的形式保存
     private void saveErrorLog() {
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh-mm-ss", Locale.getDefault());
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
             String format = sdf.format(new Date());
             format += ".log";
             format = RequestCode.UPLOAD_APP_LOG;
@@ -166,18 +166,23 @@ public class CrashHandler implements UncaughtExceptionHandler {
         printWriter.close();
 
         //将错误信息加入mErrorLogBuffer中
-        append("", result);
-        mErrorLogBuffer.append(SINGLE_LINE + SINGLE_RETURN);
+        append1(result);
+        mErrorLogBuffer.append(SINGLE_LINE + SINGLE_RETURN + SINGLE_RETURN);
     }
 
     //收集应用和设备信息
     private void collectDeviceInfo(Context context) {
         //每次使用前，清掉mErrorLogBuffer里的内容
         mErrorLogBuffer.setLength(0);
-        mErrorLogBuffer.append(SINGLE_RETURN + SINGLE_LINE + SINGLE_RETURN);
+        mErrorLogBuffer.append(SINGLE_RETURN );
 
         //获取应用的信息
         PackageManager pm = context.getPackageManager();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        String format = sdf.format(new Date());
+        append("createTime",format);
+        mErrorLogBuffer.append(SINGLE_LINE + SINGLE_RETURN + SINGLE_RETURN);
+
         try {
             PackageInfo pi = pm.getPackageInfo(context.getPackageName(),
                     PackageManager.GET_ACTIVITIES);
@@ -190,7 +195,7 @@ public class CrashHandler implements UncaughtExceptionHandler {
             e.printStackTrace();
         }
 
-        mErrorLogBuffer.append(SINGLE_LINE + SINGLE_RETURN);
+        mErrorLogBuffer.append(SINGLE_LINE + SINGLE_RETURN + SINGLE_RETURN);
 
         //获取设备的信息
         Field[] fields = Build.class.getDeclaredFields();
@@ -199,7 +204,7 @@ public class CrashHandler implements UncaughtExceptionHandler {
         fields = Build.VERSION.class.getDeclaredFields();
         getDeviceInfoByReflection(fields);
 
-        mErrorLogBuffer.append(SINGLE_LINE + SINGLE_RETURN);
+        mErrorLogBuffer.append(SINGLE_LINE + SINGLE_RETURN + SINGLE_RETURN);
     }
 
     //获取设备的信息通过反射方式
@@ -218,6 +223,10 @@ public class CrashHandler implements UncaughtExceptionHandler {
 
     //mErrorLogBuffer添加友好的log信息
     private void append(String key, Object value) {
-        mErrorLogBuffer.append("" + key + ":" + value + SINGLE_RETURN);
+        mErrorLogBuffer.append("" + key + ": " + value + SINGLE_RETURN);
+    }
+    //mErrorLogBuffer添加友好的log信息
+    private void append1(Object value) {
+        mErrorLogBuffer.append(value + SINGLE_RETURN);
     }
 }

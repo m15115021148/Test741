@@ -88,6 +88,9 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
                     PreferencesUtil.setStringData(MainActivity.this,"type",RequestCode.ANDROID_SUCCESS);
                     mHandler.sendEmptyMessageDelayed(1002,5000);
                     break;
+                case 1004:
+                    if (mAdapter!=null)mAdapter.setData(MyApplication.getInstance().mDb.getAllData());
+                    break;
             }
         }
     };
@@ -148,6 +151,7 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
             PreferencesUtil.setStringData(this,"type","");
             mTestResult.setVisibility(View.VISIBLE);
             mTestResult.setText("失败");
+            mHandler.sendEmptyMessageDelayed(1004,2000);
         } else if (RequestCode.ANDROID_SUCCESS.equals(type)){
             PreferencesUtil.setStringData(this,"allTime",String.valueOf(Integer.parseInt(PreferencesUtil.getStringData(this,"allTime"))-1));
             if (Integer.parseInt(PreferencesUtil.getStringData(this,"allTime"))==0){
@@ -156,6 +160,7 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
                 PreferencesUtil.setStringData(this,"type","");
                 mTestResult.setVisibility(View.VISIBLE);
                 mTestResult.setText("测试完成");
+                mHandler.sendEmptyMessageDelayed(1004,2000);
             }else {
                 PreferencesUtil.setStringData(this,"type", RequestCode.ANDROID_EMMC);
                 mHandler.sendEmptyMessageDelayed(1001,5000);
@@ -223,7 +228,7 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
     private boolean check(String action){
         boolean isRun = MyApplication.getInstance().mDb.checkIsRun();
         if (isRun){
-            return false;
+            return true;
         }
 
         TypeModel data = MyApplication.getInstance().mDb.getData(action);

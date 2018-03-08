@@ -3,7 +3,6 @@ package com.meigsmart.test741.activity;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.media.MediaPlayer;
@@ -18,7 +17,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.meigsmart.test741.MusicService;
 import com.meigsmart.test741.MyApplication;
 import com.meigsmart.test741.R;
 import com.meigsmart.test741.config.RequestCode;
@@ -26,7 +24,7 @@ import com.meigsmart.test741.db.TypeModel;
 import com.meigsmart.test741.util.DateUtil;
 import com.meigsmart.test741.util.PreferencesUtil;
 
-import java.io.File;
+import java.io.IOException;
 
 public class VideoActivity extends BaseActivity implements MediaPlayer.OnCompletionListener,MediaPlayer.OnErrorListener,MediaPlayer.OnInfoListener,
         MediaPlayer.OnPreparedListener, MediaPlayer.OnSeekCompleteListener,MediaPlayer.OnVideoSizeChangedListener,SurfaceHolder.Callback{
@@ -36,7 +34,6 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
 
     private int mBroadType = 0;
 
-    private boolean isPlay;
     private TypeModel model;
     private TextView mOver;
 
@@ -48,20 +45,6 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
         mOver = findViewById(R.id.over);
 
         mBroadType = getIntent().getIntExtra("broadType",0);
-
-        holder = surfaceView.getHolder();
-        holder.addCallback(this);
-        //为了可以播放视频或者使用Camera预览，我们需要指定其Buffer类型
-        holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-
-        //下面开始实例化MediaPlayer对象
-        player = new MediaPlayer();
-        player.setOnCompletionListener(this);
-        player.setOnErrorListener(this);
-        player.setOnInfoListener(this);
-        player.setOnPreparedListener(this);
-        player.setOnSeekCompleteListener(this);
-        player.setOnVideoSizeChangedListener(this);
 
         if (mBroadType == 1){
 
@@ -80,9 +63,6 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
             model.setIsPass(0);
 
             MyApplication.getInstance().mDb.addData(model);
-
-            isPlay = init(model.getFilepath());
-
         }
 
         mOver.setOnClickListener(new View.OnClickListener() {
@@ -109,6 +89,24 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        holder = surfaceView.getHolder();
+        holder.addCallback(this);
+        //为了可以播放视频或者使用Camera预览，我们需要指定其Buffer类型
+        holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+
+        //下面开始实例化MediaPlayer对象
+        player = new MediaPlayer();
+        player.setOnCompletionListener(this);
+        player.setOnErrorListener(this);
+        player.setOnInfoListener(this);
+        player.setOnPreparedListener(this);
+        player.setOnSeekCompleteListener(this);
+        player.setOnVideoSizeChangedListener(this);
+    }
+
+    @Override
     protected void error(){
         if (model != null){
             PreferencesUtil.setStringData(this,"type", RequestCode.ANDROID_ERROR);
@@ -129,39 +127,6 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
         if (model != null){
             MyApplication.getInstance().mDb.update(model.getType(),0,0);
         }
-    }
-
-    private boolean init(String filepath){
-        if (TextUtils.isEmpty(filepath)){
-            try {
-                AssetManager assetMg = this.getApplicationContext().getAssets();
-                AssetFileDescriptor fileDescriptor = assetMg.openFd("test1.mp4");
-                player.setDataSource(fileDescriptor.getFileDescriptor(), fileDescriptor.getStartOffset(), fileDescriptor.getLength());
-                return true;
-            } catch (Exception e) {
-                error();
-                this.finish();
-                e.printStackTrace();
-            }
-        }else{
-            File file = new File(filepath);
-            if (file.exists()){
-                try {
-                    player.setDataSource(filepath);
-                    return true;
-                } catch (Exception e) {
-                    error();
-                    this.finish();
-                    e.printStackTrace();
-                }
-            }else{
-                error();
-                Toast.makeText(this,"无法找到播放文件",Toast.LENGTH_SHORT).show();
-                this.finish();
-                return false;
-            }
-        }
-        return false;
     }
 
     @Override
@@ -198,17 +163,31 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
     @SuppressLint("NewApi")
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        if (isPlay){
-            player.setLooping(false);
-            player.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
-            player.setDisplay(holder);
-            player.prepareAsync();
+        if ( player != null ){
+            try {
+                player.reset();
+                player.setDisplay(holder);
+                AssetManager assetMg = this.getApplicationContext().getAssets();
+                AssetFileDescriptor fileDescriptor = assetMg.openFd("test1.mp4");
+                player.setDataSource(fileDescriptor.getFileDescriptor(), fileDescriptor.getStartOffset(), fileDescriptor.getLength());
+                player.prepareAsync();
+            } catch (IOException e) {
+                e.printStackTrace();
+                error();
+                Toast.makeText(this,"无法找到播放文件",Toast.LENGTH_SHORT).show();
+                this.finish();
+            }
         }
+
     }
     @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        player.release();
-        player=null;
+    public void surfaceDestroyed(SurfaceHolder holder) {//后台
+        if (player!=null){
+            //释放资源
+            player.release();
+            player = null;
+        }
+
     }
 
     @Override
@@ -223,14 +202,13 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
 
     @Override
     public void onPrepared(MediaPlayer player) {
-        if (isPlay){
-            RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
-                    RelativeLayout.LayoutParams.MATCH_PARENT,
-                    RelativeLayout.LayoutParams.MATCH_PARENT);
+        Log.e("result","onPrepared...");
+        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT,
+                RelativeLayout.LayoutParams.MATCH_PARENT);
 
-            surfaceView.setLayoutParams(lp);
-            player.start();
-        }
+        surfaceView.setLayoutParams(lp);
+        player.start();
     }
     @Override
     public boolean onInfo(MediaPlayer player, int whatInfo, int extra) {
