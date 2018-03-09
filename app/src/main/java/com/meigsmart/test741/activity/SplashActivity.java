@@ -21,7 +21,7 @@ import java.util.List;
 
 public class SplashActivity extends BaseActivity implements View.OnClickListener {
     private ListView mLv;
-    private int[] times = {2, 4, 8, 12, 16, 24};
+    private int[] times = {3, 6, 12, 24};
     private List<SplashModel> mList = new ArrayList<>();
     private SplashAdapter adapter;
     private TextView mStart;
