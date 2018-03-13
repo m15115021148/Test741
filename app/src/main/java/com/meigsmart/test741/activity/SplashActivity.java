@@ -1,8 +1,6 @@
 package com.meigsmart.test741.activity;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -10,7 +8,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.meigsmart.test741.BootBroadcastReceiver;
 import com.meigsmart.test741.R;
 import com.meigsmart.test741.model.SplashModel;
 import com.meigsmart.test741.util.PreferencesUtil;

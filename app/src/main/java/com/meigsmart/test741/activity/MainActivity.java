@@ -12,12 +12,10 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.alibaba.fastjson.JSON;
 import com.meigsmart.test741.BootBroadcastReceiver;
 import com.meigsmart.test741.MainAdapter;
 import com.meigsmart.test741.MyApplication;
@@ -103,13 +101,22 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
                 case 1004://error
                     if (mAdapter!=null)mAdapter.setData(MyApplication.getInstance().mDb.getAllData());
                     saveData();
+
+                    mHandler.sendEmptyMessageDelayed(1006,2000);
                     break;
                 case 1005://success
                     mTestResult.setVisibility(View.VISIBLE);
                     mTestResult.setText("测试完成");
                     if (mAdapter!=null)mAdapter.setData(MyApplication.getInstance().mDb.getAllData());
-
                     saveData();
+
+                    mHandler.sendEmptyMessageDelayed(1006,2000);
+                    break;
+                case 1006:
+                    MyApplication.getInstance().mDb.deleteAll();
+                    Intent intent = new Intent(mContext,SplashActivity.class);
+                    startActivity(intent);
+                    finish();
                     break;
             }
         }
@@ -121,23 +128,22 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
         String data = FileUtil.readFile(FileUtil.getSDPath(mContext, true), RequestCode.GET_CONFIG_PATH);
         String productionCode = "";
         String staffCode = "";
-        try {
-            JSONObject object = new JSONObject(data);
-            productionCode = object.getString("RUNIN_ProductionCode");
-            staffCode = object.getString("RUNIN_StaffCode");
-        } catch (JSONException e) {
-            e.printStackTrace();
+        if (!TextUtils.isEmpty(data)){
+            try {
+                JSONObject object = new JSONObject(data);
+                productionCode = object.getString("RUNIN_ProductionCode");
+                staffCode = object.getString("RUNIN_StaffCode");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
+
 
         String result = getTestResultJson(MyApplication.getInstance().mDb.getAllData());
 
         String objectJson = getObjectJson(result, getAllResult(MyApplication.getInstance().mDb.getAllData()), productionCode, staffCode);
 
-        if (TextUtils.isEmpty(FileUtil.getSDPath(mContext, true))){
-            FileUtil.writeFile(FileUtil.createFolder(FileUtil.getStoragePath()),RequestCode.SAVE_RESULT_PATH,objectJson);
-        }else{
-            FileUtil.writeFile(FileUtil.createFolder(FileUtil.getSDPath(mContext, true)),RequestCode.SAVE_RESULT_PATH,objectJson);
-        }
+        FileUtil.writeFile(FileUtil.createFolder(FileUtil.getStoragePath()),RequestCode.SAVE_RESULT_PATH,objectJson);
     }
 
     private String getObjectJson(String result,boolean type,String ws,String empCode){
@@ -146,7 +152,7 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
         append(RequestCode.JSON_BTMACADDR,DeviceUtil.getBluetoothAddress());
         StringBuffer buffer = new StringBuffer();
         buffer.append("000000000000000");
-        buffer.append(DeviceUtil.getMac().replace(":",""));
+        buffer.append(TextUtils.isEmpty(DeviceUtil.getMac())?"":DeviceUtil.getMac().replace(":","").toUpperCase());
         append(RequestCode.JSON_UUID,buffer.toString());
        // append(RequestCode.JSON_SKU,"");
         append(RequestCode.JSON_TR,result);
@@ -228,42 +234,72 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
         if (RequestCode.ANDROID_REBOOT.equals(type)){
             initReboot(type);
         }else if (RequestCode.ANDROID_CPU.equals(type)){
-            if(!check(type))return;
+            if(!check(type)){
+                MyApplication.getInstance().mDb.update(type,0,2);
+                PreferencesUtil.setStringData(mContext,"type", RequestCode.ANDROID_REBOOT);
+                mHandler.sendEmptyMessage(1001);
+                return;
+            }
 
             Intent cpu = new Intent(this, CpuActivity.class);
             cpu.putExtra("broadType",1);
             cpu.putExtra("type", type);
             startActivity(cpu);
         }else if (RequestCode.ANDROID_EMMC.equals(type)){
-            if(!check(type))return;
+            if(!check(type)){
+                MyApplication.getInstance().mDb.update(type,0,2);
+                PreferencesUtil.setStringData(mContext,"type", RequestCode.ANDROID_MEMORY);
+                mHandler.sendEmptyMessage(1001);
+                return;
+            }
 
             Intent emmc = new Intent(this, MemoryActivity.class);
             emmc.putExtra("broadType",2);
             emmc.putExtra("type", type);
             startActivity(emmc);
         }else if (RequestCode.ANDROID_MEMORY.equals(type)){
-            if(!check(type))return;
+            if(!check(type)){
+                MyApplication.getInstance().mDb.update(type,0,2);
+                PreferencesUtil.setStringData(mContext,"type", RequestCode.ANDROID_AUDIO);
+                mHandler.sendEmptyMessage(1001);
+                return;
+            }
 
             Intent video = new Intent(this, MemoryActivity.class);
             video.putExtra("broadType",1);
             video.putExtra("type", type);
             startActivity(video);
         }else if (RequestCode.ANDROID_AUDIO.equals(type)){
-            if(!check(type))return;
+            if(!check(type)){
+                MyApplication.getInstance().mDb.update(type,0,2);
+                PreferencesUtil.setStringData(mContext,"type", RequestCode.ANDROID_VIDEO);
+                mHandler.sendEmptyMessage(1001);
+                return;
+            }
 
             Intent audio = new Intent(this, AudioActivity.class);
             audio.putExtra("broadType",1);
             audio.putExtra("type", type);
             startActivity(audio);
         }else if (RequestCode.ANDROID_VIDEO.equals(type)){
-            if(!check(type))return;
+            if(!check(type)){
+                MyApplication.getInstance().mDb.update(type,0,2);
+                PreferencesUtil.setStringData(mContext,"type", RequestCode.ANDROID_LCD);
+                mHandler.sendEmptyMessage(1001);
+                return;
+            }
 
             Intent video = new Intent(this, VideoActivity.class);
             video.putExtra("broadType",1);
             video.putExtra("type", type);
             startActivity(video);
         }else if (RequestCode.ANDROID_LCD.equals(type)){
-            if(!check(type))return;
+            if(!check(type)){
+                MyApplication.getInstance().mDb.update(type,0,2);
+                PreferencesUtil.setStringData(mContext,"type", RequestCode.ANDROID_CPU);
+                mHandler.sendEmptyMessage(1001);
+                return;
+            }
 
             Intent test = new Intent(this, TestActivity.class);
             test.putExtra("broadType",1);
@@ -272,6 +308,7 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
         } else if (RequestCode.ANDROID_ERROR.equals(type)){
             PreferencesUtil.isFristLogin(this,"first",false);
             PreferencesUtil.setStringData(this,"type","");
+            PreferencesUtil.isFristLogin(this,"onClickStart",false);
             mTestResult.setVisibility(View.VISIBLE);
             mTestResult.setText("失败");
             mHandler.sendEmptyMessageDelayed(1004,2000);
@@ -370,15 +407,34 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
     }
 
     @Override
-    public void onOver() {
+    public void onOver(final int type) {
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("提示");
-        builder.setMessage("是否结束测试？");
+        String str = "";
+        if (type == 1){
+            str = "是否结束测试?";
+        }else{
+            str = "是否退出整个测试，重新选择？";
+        }
+        builder.setMessage(str);
         builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 mHandler.removeMessages(1001);
                 mHandler.sendEmptyMessage(1003);
+                if (type == 2){
+                    MyApplication.getInstance().mDb.deleteAll();
+                    PreferencesUtil.isFristLogin(mContext,"onClickStart",false);
+                    PreferencesUtil.isFristLogin(mContext,"first",false);
+                    PreferencesUtil.setStringData(mContext,"type","");
+
+                    //退出所有的activity
+                    Intent intent = new Intent();
+                    intent.setAction(BaseActivity.TAG_ESC_ACTIVITY);
+                    sendBroadcast(intent);
+                    finish();
+                }
+
             }
         });
         builder.setNegativeButton("取消",null);

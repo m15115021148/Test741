@@ -3,6 +3,7 @@ package com.meigsmart.test741.activity;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.media.MediaPlayer;
@@ -36,6 +37,7 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
 
     private TypeModel model;
     private TextView mOver;
+    private TextView mExit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +45,7 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
         setContentView(R.layout.activity_video);
         surfaceView = (SurfaceView)findViewById(R.id.sf);
         mOver = findViewById(R.id.over);
+        mExit = findViewById(R.id.exit);
 
         mBroadType = getIntent().getIntExtra("broadType",0);
 
@@ -86,6 +89,33 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
                 builder.create().show();
             }
         });
+
+        mExit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(VideoActivity.this);
+                builder.setTitle("提示");
+                builder.setMessage("是否退出整个测试，重新选择？");
+                builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        MyApplication.getInstance().mDb.deleteAll();
+                        PreferencesUtil.isFristLogin(VideoActivity.this,"onClickStart",false);
+                        PreferencesUtil.isFristLogin(VideoActivity.this,"first",false);
+                        PreferencesUtil.setStringData(VideoActivity.this,"type","");
+
+                        //退出所有的activity
+                        Intent intent = new Intent();
+                        intent.setAction(BaseActivity.TAG_ESC_ACTIVITY);
+                        sendBroadcast(intent);
+                        finish();
+                    }
+                });
+                builder.setNegativeButton("取消",null);
+                builder.create().show();
+            }
+        });
+
     }
 
     @Override

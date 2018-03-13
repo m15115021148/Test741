@@ -13,6 +13,19 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/exit"
+            android:textSize="10sp"
+            android:gravity="center"
+            android:background="@drawable/over_bg"
+            android:layout_margin="20dp"
+            android:layout_alignParentRight="true"
+            android:layout_above="@+id/over"
+            android:text="EXIT"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+
+        <TextView
             android:id="@+id/over"
             android:textSize="10sp"
             android:gravity="center"

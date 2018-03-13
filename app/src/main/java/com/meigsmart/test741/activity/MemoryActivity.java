@@ -3,6 +3,7 @@ package com.meigsmart.test741.activity;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -33,6 +34,7 @@ public class MemoryActivity extends BaseActivity {
     private TextView mTitle;
     private TextView mResult;
     private TextView mOver;
+    private TextView mExit;
     private ProgressBar mProgress;
 
     private int mBroadType = 0;
@@ -51,6 +53,8 @@ public class MemoryActivity extends BaseActivity {
         mTitle = findViewById(R.id.include).findViewById(R.id.title);
         mOver = findViewById(R.id.include).findViewById(R.id.over);
         mOver.setVisibility(View.VISIBLE);
+        mExit = findViewById(R.id.include).findViewById(R.id.exit);
+        mExit.setVisibility(View.VISIBLE);
         mResult = (TextView) findViewById(R.id.result);
         mProgress = (ProgressBar) findViewById(R.id.progressBar);
         mTitle.setText("MEMORY TEST");
@@ -121,6 +125,33 @@ public class MemoryActivity extends BaseActivity {
                 builder.create().show();
             }
         });
+
+        mExit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(MemoryActivity.this);
+                builder.setTitle("提示");
+                builder.setMessage("是否退出整个测试，重新选择？");
+                builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        MyApplication.getInstance().mDb.deleteAll();
+                        PreferencesUtil.isFristLogin(MemoryActivity.this,"onClickStart",false);
+                        PreferencesUtil.isFristLogin(MemoryActivity.this,"first",false);
+                        PreferencesUtil.setStringData(MemoryActivity.this,"type","");
+
+                        //退出所有的activity
+                        Intent intent = new Intent();
+                        intent.setAction(BaseActivity.TAG_ESC_ACTIVITY);
+                        sendBroadcast(intent);
+                        finish();
+                    }
+                });
+                builder.setNegativeButton("取消",null);
+                builder.create().show();
+            }
+        });
+
     }
 
     private void init(final String path) {

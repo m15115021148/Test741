@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -29,6 +30,7 @@ import java.util.TimerTask;
 
 public class TestActivity extends BaseActivity {
     private TextView mOver;
+    private TextView mExit;
     private RelativeLayout mLayout;
 
     private int mBroadType = 0;
@@ -45,6 +47,7 @@ public class TestActivity extends BaseActivity {
         setContentView(R.layout.activity_test);
         mLayout =  findViewById(R.id.layout);
         mOver = findViewById(R.id.over);
+        mExit = findViewById(R.id.exit);
         mBroadType = getIntent().getIntExtra("broadType",0);
 
         if (mBroadType == 1){
@@ -80,6 +83,32 @@ public class TestActivity extends BaseActivity {
                         if (timerTask!=null)timerTask.cancel();
                         if (timer!=null)timer.cancel();
                         TestActivity.this.finish();
+                    }
+                });
+                builder.setNegativeButton("取消",null);
+                builder.create().show();
+            }
+        });
+
+        mExit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(TestActivity.this);
+                builder.setTitle("提示");
+                builder.setMessage("是否退出整个测试，重新选择？");
+                builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        MyApplication.getInstance().mDb.deleteAll();
+                        PreferencesUtil.isFristLogin(TestActivity.this,"onClickStart",false);
+                        PreferencesUtil.isFristLogin(TestActivity.this,"first",false);
+                        PreferencesUtil.setStringData(TestActivity.this,"type","");
+
+                        //退出所有的activity
+                        Intent intent = new Intent();
+                        intent.setAction(BaseActivity.TAG_ESC_ACTIVITY);
+                        sendBroadcast(intent);
+                        finish();
                     }
                 });
                 builder.setNegativeButton("取消",null);

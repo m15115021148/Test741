@@ -57,6 +57,17 @@ public class TestDao {
     }
 
     /**
+     * 删除指定记录
+     *
+     */
+    public void deleteAll() {
+        locationDb = locationHelper.getReadableDatabase();
+        if (locationDb.isOpen())
+            locationDb.delete(TABLE, null,null);
+        locationDb.close();
+    }
+
+    /**
      * 更新数据
      */
     public void update(String type,int isRun,int isPass){

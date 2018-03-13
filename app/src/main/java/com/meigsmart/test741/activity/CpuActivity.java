@@ -30,6 +30,7 @@ public class CpuActivity extends BaseActivity implements Runnable{
     private TextView mTitle;
     private TextView mOver;
     private TextView mResult;
+    private TextView mExit;
 
     private int mBroadType = 0;
     private TypeModel model;
@@ -42,6 +43,8 @@ public class CpuActivity extends BaseActivity implements Runnable{
         mTitle = findViewById(R.id.include).findViewById(R.id.title);
         mOver = findViewById(R.id.include).findViewById(R.id.over);
         mOver.setVisibility(View.VISIBLE);
+        mExit = findViewById(R.id.include).findViewById(R.id.exit);
+        mExit.setVisibility(View.VISIBLE);
         mResult = (TextView) findViewById(R.id.result);
         mTitle.setText("CPU TEST");
 
@@ -80,6 +83,32 @@ public class CpuActivity extends BaseActivity implements Runnable{
                         mHandler.removeMessages(1001);
                         mHandler.removeMessages(1002);
                         CpuActivity.this.finish();
+                    }
+                });
+                builder.setNegativeButton("取消",null);
+                builder.create().show();
+            }
+        });
+
+        mExit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(CpuActivity.this);
+                builder.setTitle("提示");
+                builder.setMessage("是否退出整个测试，重新选择？");
+                builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        MyApplication.getInstance().mDb.deleteAll();
+                        PreferencesUtil.isFristLogin(CpuActivity.this,"onClickStart",false);
+                        PreferencesUtil.isFristLogin(CpuActivity.this,"first",false);
+                        PreferencesUtil.setStringData(CpuActivity.this,"type","");
+
+                        //退出所有的activity
+                        Intent intent = new Intent();
+                        intent.setAction(BaseActivity.TAG_ESC_ACTIVITY);
+                        sendBroadcast(intent);
+                        finish();
                     }
                 });
                 builder.setNegativeButton("取消",null);

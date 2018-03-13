@@ -36,7 +36,7 @@ public class MainAdapter extends BaseAdapter {
     }
 
     public interface OnMainCallBack{
-        void onOver();
+        void onOver(int type);
     }
 
     private List<ResultModel> getData(){
@@ -129,6 +129,7 @@ public class MainAdapter extends BaseAdapter {
             holder.name = (TextView) convertView.findViewById(R.id.name);
             holder.result = (TextView) convertView.findViewById(R.id.result);
             holder.over = convertView.findViewById(R.id.over);
+            holder.exit = convertView.findViewById(R.id.exit);
             convertView.setTag(holder);
         }else{
             holder = (Holder) convertView.getTag();
@@ -152,17 +153,27 @@ public class MainAdapter extends BaseAdapter {
         if (model.getName().equals("REBOOT TEST")){
             if (model.getType() == -1){
                 holder.over.setVisibility(View.VISIBLE);
+                holder.exit.setVisibility(View.VISIBLE);
             }else{
                 holder.over.setVisibility(View.GONE);
+                holder.exit.setVisibility(View.GONE);
             }
         }else{
             holder.over.setVisibility(View.GONE);
+            holder.exit.setVisibility(View.GONE);
         }
 
         holder.over.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mCallBack!=null)mCallBack.onOver();
+                if (mCallBack!=null)mCallBack.onOver(1);
+            }
+        });
+
+        holder.exit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mCallBack!=null)mCallBack.onOver(2);
             }
         });
 
@@ -170,7 +181,7 @@ public class MainAdapter extends BaseAdapter {
     }
 
     private class Holder{
-        TextView name,result,over;
+        TextView name,result,over,exit;
     }
 
 }

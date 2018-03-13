@@ -24,7 +24,7 @@ public class DeviceUtil {
      * @return
      */
     public static String getMac() {
-        String macSerial = null;
+        String macSerial = "";
         String str = "";
         try {
             Process pp = Runtime.getRuntime().exec(

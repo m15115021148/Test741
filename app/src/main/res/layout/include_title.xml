@@ -10,6 +10,18 @@
         android:background="@color/colorPrimary">
 
         <TextView
+            android:id="@+id/exit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="10dp"
+            android:text="EXIT"
+            android:textColor="#fff"
+            android:textSize="15sp"
+            android:visibility="gone" />
+
+        <TextView
             android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

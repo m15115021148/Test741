@@ -21,10 +21,24 @@
 
         <TextView
             android:visibility="gone"
+            android:id="@+id/exit"
+            android:layout_width="60dp"
+            android:layout_height="20dp"
+            android:layout_toRightOf="@id/name"
+            android:layout_marginLeft="20dp"
+            android:background="@drawable/over_bg2"
+            android:gravity="center"
+            android:text="EXIT"
+            android:textColor="#fff"
+            android:textSize="12sp" />
+
+        <TextView
+            android:visibility="gone"
             android:id="@+id/over"
             android:layout_width="60dp"
             android:layout_height="20dp"
-            android:layout_centerHorizontal="true"
+            android:layout_toRightOf="@+id/exit"
+            android:layout_marginLeft="20dp"
             android:background="@drawable/over_bg2"
             android:gravity="center"
             android:text="OVER"

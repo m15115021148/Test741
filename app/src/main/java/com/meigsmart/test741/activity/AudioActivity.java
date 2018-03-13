@@ -30,6 +30,7 @@ import java.text.SimpleDateFormat;
 public class AudioActivity extends BaseActivity implements Runnable{
     private TextView mTitle;
     private TextView mOver;
+    private TextView mExit;
     private TextView mCurrTime,mTotalTime;
     private SeekBar mSb;
     private ImageView mImg;
@@ -50,6 +51,8 @@ public class AudioActivity extends BaseActivity implements Runnable{
         mTitle = findViewById(R.id.include).findViewById(R.id.title);
         mOver = findViewById(R.id.include).findViewById(R.id.over);
         mOver.setVisibility(View.VISIBLE);
+        mExit = findViewById(R.id.include).findViewById(R.id.exit);
+        mExit.setVisibility(View.VISIBLE);
         mCurrTime = (TextView)findViewById(R.id.MusicTime);
         mTotalTime = (TextView)findViewById(R.id.MusicTotal);
         mSb = (SeekBar)findViewById(R.id.MusicSeekBar);
@@ -100,6 +103,38 @@ public class AudioActivity extends BaseActivity implements Runnable{
                 builder.create().show();
             }
         });
+
+        mExit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(AudioActivity.this);
+                builder.setTitle("提示");
+                builder.setMessage("是否退出整个测试，重新选择？");
+                builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        MyApplication.getInstance().mDb.deleteAll();
+                        PreferencesUtil.isFristLogin(AudioActivity.this,"onClickStart",false);
+                        PreferencesUtil.isFristLogin(AudioActivity.this,"first",false);
+                        PreferencesUtil.setStringData(AudioActivity.this,"type","");
+
+                        if (musicService!=null)musicService.stop();
+                        handler.removeCallbacks(AudioActivity.this);
+                        unbindService(serviceConnection);
+                        if (intentMusic!=null)stopService(intentMusic);
+
+                        //退出所有的activity
+                        Intent intent = new Intent();
+                        intent.setAction(BaseActivity.TAG_ESC_ACTIVITY);
+                        sendBroadcast(intent);
+                        finish();
+                    }
+                });
+                builder.setNegativeButton("取消",null);
+                builder.create().show();
+            }
+        });
+
     }
 
     @Override
