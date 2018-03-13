@@ -12,6 +12,7 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -22,6 +23,7 @@ import com.meigsmart.test741.MyApplication;
 import com.meigsmart.test741.R;
 import com.meigsmart.test741.config.RequestCode;
 import com.meigsmart.test741.db.TypeModel;
+import com.meigsmart.test741.util.CleanMessageUtil;
 import com.meigsmart.test741.util.DateUtil;
 import com.meigsmart.test741.util.DeviceUtil;
 import com.meigsmart.test741.util.FileUtil;
@@ -30,6 +32,8 @@ import com.meigsmart.test741.util.PreferencesUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends BaseActivity implements MainAdapter.OnMainCallBack{
@@ -49,18 +53,18 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
         mLv =  findViewById(R.id.listView);
         mTestResult = findViewById(R.id.include).findViewById(R.id.over);
         receiver = new BootBroadcastReceiver();
+        register(this);
         initListView();
 
         int time = 60/7;
 //        time = 1;
         PreferencesUtil.setStringData(this,"time",String.valueOf(time));
         mType = PreferencesUtil.getStringData(MainActivity.this,"type");
+
+        initData();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        register(this);
+    private void initData() {
         try {
             Thread.sleep(50);
         } catch (InterruptedException e) {
@@ -68,8 +72,7 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
         }
         if (mAdapter!=null)mAdapter.setData(MyApplication.getInstance().mDb.getAllData());
 
-        mHandler.sendEmptyMessageDelayed(1001,5000);
-
+        mHandler.sendEmptyMessageDelayed(1001,3000);
     }
 
     @SuppressLint("HandlerLeak")
@@ -89,7 +92,7 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
                     break;
                 case 1002:
                     if (mAdapter!=null)mAdapter.setData(MyApplication.getInstance().mDb.getAllData());
-                    mHandler.sendEmptyMessageDelayed(1001,5000);
+                    mHandler.sendEmptyMessageDelayed(1001,3000);
                     break;
                 case 1003:
                     PreferencesUtil.isFristLogin(MainActivity.this,"reboot",false);
@@ -228,6 +231,12 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
     protected void onDestroy() {
         super.onDestroy();
         if (receiver!=null)unregisterReceiver(receiver);
+        mHandler.removeMessages(1001);
+        mHandler.removeMessages(1002);
+        mHandler.removeMessages(1003);
+        mHandler.removeMessages(1004);
+        mHandler.removeMessages(1005);
+        mHandler.removeMessages(1006);
     }
 
     private void init(String type){
@@ -244,7 +253,7 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
             Intent cpu = new Intent(this, CpuActivity.class);
             cpu.putExtra("broadType",1);
             cpu.putExtra("type", type);
-            startActivity(cpu);
+            startActivityForResult(cpu,1001);
         }else if (RequestCode.ANDROID_EMMC.equals(type)){
             if(!check(type)){
                 MyApplication.getInstance().mDb.update(type,0,2);
@@ -256,7 +265,7 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
             Intent emmc = new Intent(this, MemoryActivity.class);
             emmc.putExtra("broadType",2);
             emmc.putExtra("type", type);
-            startActivity(emmc);
+            startActivityForResult(emmc,1001);
         }else if (RequestCode.ANDROID_MEMORY.equals(type)){
             if(!check(type)){
                 MyApplication.getInstance().mDb.update(type,0,2);
@@ -268,7 +277,7 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
             Intent video = new Intent(this, MemoryActivity.class);
             video.putExtra("broadType",1);
             video.putExtra("type", type);
-            startActivity(video);
+            startActivityForResult(video,1001);
         }else if (RequestCode.ANDROID_AUDIO.equals(type)){
             if(!check(type)){
                 MyApplication.getInstance().mDb.update(type,0,2);
@@ -280,7 +289,7 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
             Intent audio = new Intent(this, AudioActivity.class);
             audio.putExtra("broadType",1);
             audio.putExtra("type", type);
-            startActivity(audio);
+            startActivityForResult(audio,1001);
         }else if (RequestCode.ANDROID_VIDEO.equals(type)){
             if(!check(type)){
                 MyApplication.getInstance().mDb.update(type,0,2);
@@ -292,7 +301,7 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
             Intent video = new Intent(this, VideoActivity.class);
             video.putExtra("broadType",1);
             video.putExtra("type", type);
-            startActivity(video);
+            startActivityForResult(video,1001);
         }else if (RequestCode.ANDROID_LCD.equals(type)){
             if(!check(type)){
                 MyApplication.getInstance().mDb.update(type,0,2);
@@ -304,7 +313,7 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
             Intent test = new Intent(this, TestActivity.class);
             test.putExtra("broadType",1);
             test.putExtra("type", type);
-            startActivity(test);
+            startActivityForResult(test,1001);
         } else if (RequestCode.ANDROID_ERROR.equals(type)){
             PreferencesUtil.isFristLogin(this,"first",false);
             PreferencesUtil.setStringData(this,"type","");
@@ -322,7 +331,7 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
                 mHandler.sendEmptyMessageDelayed(1005,2000);
             }else {
                 PreferencesUtil.setStringData(this,"type", RequestCode.ANDROID_EMMC);
-                mHandler.sendEmptyMessageDelayed(1001,5000);
+                mHandler.sendEmptyMessageDelayed(1001,3000);
             }
         }
     }
@@ -428,6 +437,8 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
                     PreferencesUtil.isFristLogin(mContext,"first",false);
                     PreferencesUtil.setStringData(mContext,"type","");
 
+                    CleanMessageUtil.cleanApplicationData(MyApplication.getInstance().getApplicationContext());
+
                     //退出所有的activity
                     Intent intent = new Intent();
                     intent.setAction(BaseActivity.TAG_ESC_ACTIVITY);
@@ -448,5 +459,12 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
 
     private void append1(String key, Object value) {
         resultStringBuffer.append(key + "=" + value);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == 1001){
+            initData();
+        }
     }
 }

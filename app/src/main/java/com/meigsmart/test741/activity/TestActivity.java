@@ -22,6 +22,7 @@ import com.meigsmart.test741.MyApplication;
 import com.meigsmart.test741.R;
 import com.meigsmart.test741.config.RequestCode;
 import com.meigsmart.test741.db.TypeModel;
+import com.meigsmart.test741.util.CleanMessageUtil;
 import com.meigsmart.test741.util.DateUtil;
 import com.meigsmart.test741.util.PreferencesUtil;
 
@@ -104,6 +105,8 @@ public class TestActivity extends BaseActivity {
                         PreferencesUtil.isFristLogin(TestActivity.this,"first",false);
                         PreferencesUtil.setStringData(TestActivity.this,"type","");
 
+                        CleanMessageUtil.cleanApplicationData(MyApplication.getInstance().getApplicationContext());
+
                         //退出所有的activity
                         Intent intent = new Intent();
                         intent.setAction(BaseActivity.TAG_ESC_ACTIVITY);
@@ -124,6 +127,7 @@ public class TestActivity extends BaseActivity {
             PreferencesUtil.setStringData(this,"type", RequestCode.ANDROID_ERROR);
             MyApplication.getInstance().mDb.update(model.getType(),0,2);
         }
+        setResult(1001);
         this.finish();
     }
 
@@ -132,6 +136,7 @@ public class TestActivity extends BaseActivity {
         if (model != null){
             PreferencesUtil.setStringData(this,"type", RequestCode.ANDROID_CPU);
             MyApplication.getInstance().mDb.update(model.getType(),0,1);
+            setResult(1001);
         }
     }
 

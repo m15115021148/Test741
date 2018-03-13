@@ -22,6 +22,7 @@ import com.meigsmart.test741.MyApplication;
 import com.meigsmart.test741.R;
 import com.meigsmart.test741.config.RequestCode;
 import com.meigsmart.test741.db.TypeModel;
+import com.meigsmart.test741.util.CleanMessageUtil;
 import com.meigsmart.test741.util.DateUtil;
 import com.meigsmart.test741.util.PreferencesUtil;
 
@@ -104,6 +105,8 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
                         PreferencesUtil.isFristLogin(VideoActivity.this,"first",false);
                         PreferencesUtil.setStringData(VideoActivity.this,"type","");
 
+                        CleanMessageUtil.cleanApplicationData(MyApplication.getInstance().getApplicationContext());
+
                         //退出所有的activity
                         Intent intent = new Intent();
                         intent.setAction(BaseActivity.TAG_ESC_ACTIVITY);
@@ -141,6 +144,7 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
         if (model != null){
             PreferencesUtil.setStringData(this,"type", RequestCode.ANDROID_ERROR);
             MyApplication.getInstance().mDb.update(model.getType(),0,2);
+            setResult(1001);
         }
     }
 
@@ -149,6 +153,7 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
         if (model != null){
             PreferencesUtil.setStringData(this,"type", RequestCode.ANDROID_LCD);
             MyApplication.getInstance().mDb.update(model.getType(),0,1);
+            setResult(1001);
         }
     }
 

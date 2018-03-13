@@ -94,6 +94,7 @@ public class CrashHandler implements UncaughtExceptionHandler {
             @Override
             public void run() {
                 Looper.prepare();
+                MyApplication.getInstance().mDb.update(PreferencesUtil.getStringData(MyApplication.getInstance().getApplicationContext(),"type"),0,2);
                 PreferencesUtil.setStringData(MyApplication.getInstance().getApplicationContext(),"type", RequestCode.ANDROID_ERROR);
                 Toast.makeText(MyApplication.getInstance().getApplicationContext(),"Program exception, exit",Toast.LENGTH_SHORT).show();
                 Looper.loop();
