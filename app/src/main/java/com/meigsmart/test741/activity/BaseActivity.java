@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.Window;
+import android.view.WindowManager;
 
 public abstract class BaseActivity extends Activity {
     protected static final String TAG_ESC_ACTIVITY = "com.broader.esc";//内容描述 退出activity时 发送的广播信号
@@ -19,6 +20,8 @@ public abstract class BaseActivity extends Activity {
         // 设置无标题
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        // 防止锁屏
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         // 注册广播
         receiver = new MyBroaderEsc();

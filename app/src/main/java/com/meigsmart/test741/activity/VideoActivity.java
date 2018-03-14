@@ -39,6 +39,7 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
     private TypeModel model;
     private TextView mOver;
     private TextView mExit;
+    private boolean isHint ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +50,19 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
         mExit = findViewById(R.id.exit);
 
         mBroadType = getIntent().getIntExtra("broadType",0);
+        holder = surfaceView.getHolder();
+        holder.addCallback(this);
+        //为了可以播放视频或者使用Camera预览，我们需要指定其Buffer类型
+        holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+
+        //下面开始实例化MediaPlayer对象
+        player = new MediaPlayer();
+        player.setOnCompletionListener(this);
+        player.setOnErrorListener(this);
+        player.setOnInfoListener(this);
+        player.setOnPreparedListener(this);
+        player.setOnSeekCompleteListener(this);
+        player.setOnVideoSizeChangedListener(this);
 
         if (mBroadType == 1){
 
@@ -80,8 +94,9 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
                     public void onClick(DialogInterface dialog, int which) {
                         success();
                         if (player!=null){
-                            player.stop();
+                            if (player.isPlaying())player.stop();
                             player.release();
+                            player = null;
                         }
                         VideoActivity.this.finish();
                     }
@@ -100,6 +115,12 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
                 builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        if (player!=null){
+                            if (player.isPlaying())player.stop();
+                            player.release();
+                            player = null;
+                        }
+
                         MyApplication.getInstance().mDb.deleteAll();
                         PreferencesUtil.isFristLogin(VideoActivity.this,"onClickStart",false);
                         PreferencesUtil.isFristLogin(VideoActivity.this,"first",false);
@@ -124,19 +145,12 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
     @Override
     protected void onResume() {
         super.onResume();
-        holder = surfaceView.getHolder();
-        holder.addCallback(this);
-        //为了可以播放视频或者使用Camera预览，我们需要指定其Buffer类型
-        holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-
-        //下面开始实例化MediaPlayer对象
-        player = new MediaPlayer();
-        player.setOnCompletionListener(this);
-        player.setOnErrorListener(this);
-        player.setOnInfoListener(this);
-        player.setOnPreparedListener(this);
-        player.setOnSeekCompleteListener(this);
-        player.setOnVideoSizeChangedListener(this);
+        if (isHint){
+            isHint = false;
+            if (player!=null){
+                player.start();
+            }
+        }
     }
 
     @Override
@@ -168,7 +182,6 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
     protected void onDestroy() {
         super.onDestroy();
         if (player!=null){
-            player.stop();
             player.release();
             player=null;
         }
@@ -215,14 +228,10 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
         }
 
     }
+
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {//后台
-        if (player!=null){
-            //释放资源
-            player.release();
-            player = null;
-        }
-
+        isHint = true;
     }
 
     @Override
@@ -237,7 +246,6 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
 
     @Override
     public void onPrepared(MediaPlayer player) {
-        Log.e("result","onPrepared...");
         RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
                 RelativeLayout.LayoutParams.MATCH_PARENT,
                 RelativeLayout.LayoutParams.MATCH_PARENT);
