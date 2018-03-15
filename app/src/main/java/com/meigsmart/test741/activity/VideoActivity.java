@@ -271,7 +271,6 @@ public class VideoActivity extends BaseActivity implements MediaPlayer.OnComplet
 
     @Override
     public boolean onError(MediaPlayer player, int whatError, int extra) {
-        error();
         switch (whatError) {
             case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
                 break;
