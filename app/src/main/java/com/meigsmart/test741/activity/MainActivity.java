@@ -13,6 +13,7 @@ import android.os.PowerManager;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -32,8 +33,6 @@ import com.meigsmart.test741.util.PreferencesUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends BaseActivity implements MainAdapter.OnMainCallBack{
@@ -467,4 +466,14 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
             initData();
         }
     }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            moveTaskToBack(false);
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
 }
