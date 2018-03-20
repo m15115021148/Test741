@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.Bundle;
+import android.text.Html;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -104,7 +105,6 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
                     if (mAdapter!=null)mAdapter.setData(MyApplication.getInstance().mDb.getAllData());
                     saveData();
 
-                    mHandler.sendEmptyMessageDelayed(1006,2000);
                     break;
                 case 1005://success
                     mTestResult.setVisibility(View.VISIBLE);
@@ -112,7 +112,6 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
                     if (mAdapter!=null)mAdapter.setData(MyApplication.getInstance().mDb.getAllData());
                     saveData();
 
-                    mHandler.sendEmptyMessageDelayed(1006,2000);
                     break;
                 case 1006:
                     MyApplication.getInstance().mDb.deleteAll();
@@ -126,26 +125,45 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
 
     private void saveData(){
         resultStringBuffer.setLength(0);
-        //save data
-        String data = FileUtil.readFile(FileUtil.getSDPath(mContext, true), RequestCode.GET_CONFIG_PATH);
-        String productionCode = "";
-        String staffCode = "";
-        if (!TextUtils.isEmpty(data)){
-            try {
-                JSONObject object = new JSONObject(data);
-                productionCode = object.getString("RUNIN_ProductionCode");
-                staffCode = object.getString("RUNIN_StaffCode");
-            } catch (JSONException e) {
-                e.printStackTrace();
+        String str = TextUtils.isEmpty(FileUtil.getSDPath(mContext, true))?"（请插入sd卡）":"";
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("提示");
+        builder.setMessage(Html.fromHtml("是否保存生成结果Log日志？"+"<font color='#ff0000'>"+str+"</font>"));
+        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //save data
+                String data = FileUtil.readFile(FileUtil.getSDPath(mContext, true), RequestCode.GET_CONFIG_PATH);
+                String productionCode = "";
+                String staffCode = "";
+                if (!TextUtils.isEmpty(data)){
+                    try {
+                        JSONObject object = new JSONObject(data);
+                        productionCode = object.getString("RUNIN_ProductionCode");
+                        staffCode = object.getString("RUNIN_StaffCode");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+
+                String result = getTestResultJson(MyApplication.getInstance().mDb.getAllData());
+
+                String objectJson = getObjectJson(result, getAllResult(MyApplication.getInstance().mDb.getAllData()), productionCode, staffCode);
+
+                FileUtil.writeFile(FileUtil.createFolder(FileUtil.getStoragePath()),RequestCode.SAVE_RESULT_PATH,objectJson);
+
+                mHandler.sendEmptyMessageDelayed(1006,2000);
             }
-        }
-
-
-        String result = getTestResultJson(MyApplication.getInstance().mDb.getAllData());
-
-        String objectJson = getObjectJson(result, getAllResult(MyApplication.getInstance().mDb.getAllData()), productionCode, staffCode);
-
-        FileUtil.writeFile(FileUtil.createFolder(FileUtil.getStoragePath()),RequestCode.SAVE_RESULT_PATH,objectJson);
+        });
+        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                mHandler.sendEmptyMessageDelayed(1006,2000);
+            }
+        });
+        builder.setCancelable(false);
+        builder.create().show();
     }
 
     private String getObjectJson(String result,boolean type,String ws,String empCode){
@@ -470,8 +488,7 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            moveTaskToBack(false);
-            return true;
+            return false;
         }
         return super.onKeyDown(keyCode, event);
     }
