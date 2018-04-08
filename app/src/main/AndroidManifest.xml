@@ -46,7 +46,7 @@
             android:enabled="true"
             android:exported="true" />
         <service
-            android:name=".service.CpuService1"
+            android:name=".cpuservice.CpuService1"
             android:enabled="true"
             android:exported="true"
             android:permission="true" />

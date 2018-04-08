@@ -59,6 +59,7 @@ public class SplashActivity extends BaseActivity implements View.OnClickListener
                 for (SplashModel m : mList) {
                     m.setSelect(0);
                 }
+                mStart.setSelected(true);
                 mList.get(position).setSelect(1);
                 adapter.notifyDataSetChanged();
             }

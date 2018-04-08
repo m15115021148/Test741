@@ -24,8 +24,9 @@
             android:layout_height="match_parent"/>
 
         <TextView
-            android:background="#abc"
+            android:background="@drawable/start_tv_bg"
             android:layout_alignParentBottom="true"
+            android:textColor="#ffffff"
             android:gravity="center"
             android:layout_margin="20dp"
             android:text="开始"

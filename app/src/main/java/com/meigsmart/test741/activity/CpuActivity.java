@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.TextView;
@@ -15,8 +14,9 @@ import android.widget.TextView;
 import com.meigsmart.test741.MyApplication;
 import com.meigsmart.test741.R;
 import com.meigsmart.test741.config.RequestCode;
+import com.meigsmart.test741.cpuservice.CpuTest;
 import com.meigsmart.test741.db.TypeModel;
-import com.meigsmart.test741.service.CpuService1;
+import com.meigsmart.test741.cpuservice.CpuService1;
 import com.meigsmart.test741.util.CleanMessageUtil;
 import com.meigsmart.test741.util.DateUtil;
 import com.meigsmart.test741.util.PreferencesUtil;
@@ -26,8 +26,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Iterator;
 
-public class CpuActivity extends BaseActivity implements Runnable{
+public class CpuActivity extends BaseActivity{
     private TextView mTitle;
     private TextView mOver;
     private TextView mResult;
@@ -35,7 +37,8 @@ public class CpuActivity extends BaseActivity implements Runnable{
 
     private int mBroadType = 0;
     private TypeModel model;
-    private Intent intent1;
+
+    private CpuTest mCpuTest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,8 +69,8 @@ public class CpuActivity extends BaseActivity implements Runnable{
             model.setIsPass(0);
 
             MyApplication.getInstance().mDb.addData(model);
-            init();
         }
+        init();
 
         mOver.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -79,11 +82,7 @@ public class CpuActivity extends BaseActivity implements Runnable{
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         success();
-                        stopService();
-                        mHandler.removeCallbacks(CpuActivity.this);
-                        mHandler.removeMessages(1001);
-                        mHandler.removeMessages(1002);
-                        CpuActivity.this.finish();
+                        deInit();
                     }
                 });
                 builder.setNegativeButton("取消",null);
@@ -106,6 +105,8 @@ public class CpuActivity extends BaseActivity implements Runnable{
                         PreferencesUtil.setStringData(CpuActivity.this,"type","");
 
                         CleanMessageUtil.cleanApplicationData(MyApplication.getInstance().getApplicationContext());
+
+                        deInit();
 
                         //退出所有的activity
                         Intent intent = new Intent();
@@ -150,10 +151,21 @@ public class CpuActivity extends BaseActivity implements Runnable{
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        stopService();
-        mHandler.removeCallbacks(CpuActivity.this);
+        deInit();
+    }
+
+    private void deInit(){
+        if (this.mCpuTest != null) {
+            this.mCpuTest.stop();
+        }
         mHandler.removeMessages(1001);
         mHandler.removeMessages(1002);
+        CpuActivity.this.finish();
+    }
+
+    private void init(){
+        this.mCpuTest = new CpuTest(this,mHandler);
+        this.mCpuTest.start();
     }
 
     @Override
@@ -172,54 +184,6 @@ public class CpuActivity extends BaseActivity implements Runnable{
         return super.onKeyDown(keyCode, event);
     }
 
-    private void init() {
-        startService();
-        calculateCpuUsage();
-    }
-
-    public void startService() {
-        intent1 = new Intent(this, CpuService1.class);
-        startService(intent1);
-    }
-
-    private void stopService() {
-        stopService(intent1);
-    }
-
-    private int getProcessCpuRate() {
-
-        StringBuilder tv = new StringBuilder();
-        int rate = 0;
-
-        try {
-            String Result;
-            Process p;
-            p = Runtime.getRuntime().exec("top -n 1");
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            while ((Result = br.readLine()) != null) {
-                if (Result.trim().length() < 1) {
-                    continue;
-                } else {
-                    String[] CPUusr = Result.split("%");
-                    tv.append("USER:" + CPUusr[0] + "\n");
-                    String[] CPUusage = CPUusr[0].split("User");
-                    String[] SYSusage = CPUusr[1].split("System");
-                    tv.append("CPU:" + CPUusage[1].trim() + " length:" + CPUusage[1].trim().length() + "\n");
-                    tv.append("SYS:" + SYSusage[1].trim() + " length:" + SYSusage[1].trim().length() + "\n");
-
-                    rate = Integer.parseInt(CPUusage[1].trim()) + Integer.parseInt(SYSusage[1].trim());
-                    break;
-                }
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return rate;
-    }
-
-
     @SuppressLint("HandlerLeak")
     private Handler mHandler = new Handler() {
         @Override
@@ -227,22 +191,13 @@ public class CpuActivity extends BaseActivity implements Runnable{
             super.handleMessage(msg);
             switch (msg.what) {
                 case 1001:
-                    NumberFormat nf = NumberFormat.getNumberInstance();
-                    nf.setMaximumFractionDigits(2);
-                    mHandler.sendEmptyMessage(1002);
-                    mResult.setText("CPU使用率：" + nf.format(getProcessCpuRate() )+ "%");
-
+                    calculateCpuUsage();
                     if (model != null) {
                         if (DateUtil.getTimeInterval(DateUtil.getCurrentDate(), model.getStartTime()) >= model.getAllTime() * 60) {
                             success();
-                            stopService();
-                            mHandler.removeCallbacks(CpuActivity.this);
-                            mHandler.removeMessages(1001);
-                            mHandler.removeMessages(1002);
-                            CpuActivity.this.finish();
+                            deInit();
                         }
                     }
-                    mHandler.postDelayed(CpuActivity.this,1000);
                     break;
                 case 1002:
                     useCpu();
@@ -251,69 +206,62 @@ public class CpuActivity extends BaseActivity implements Runnable{
         }
     };
 
-
     private void calculateCpuUsage() {
-        mHandler.post(this);
+        new Thread(new Runnable() {
+            public void run() {
+                float f = readUsage();
+                String str = "Cpu Usage : " + f + "%";
+                updateCpuInfoText(str);
+                mHandler.sendEmptyMessageDelayed(1001, 1000L);
+            }
+        }, "CalCpu").start();
     }
 
     private float readUsage() {
         try {
-            RandomAccessFile randomaccessfile;
-            long l;
-            long l1;
-            long l2;
-            randomaccessfile = new RandomAccessFile("/proc/stat", "r");
-            String as[] = randomaccessfile.readLine().split(" ");
-            l = Long.parseLong(as[5]);
-            l1 = Long.parseLong(as[2]) + Long.parseLong(as[3]) + Long.parseLong(as[4]) + Long.parseLong(as[6]) + Long.parseLong(as[7]);
-            l2 = Long.parseLong(as[8]);
-            float f;
-            long l3 = l1 + l2;
-            String s;
-            String as1[];
-            long l4;
-            long l5;
-
-            Thread.sleep(100L);
-
-            randomaccessfile.seek(0L);
-            s = randomaccessfile.readLine();
-            randomaccessfile.close();
-            as1 = s.split(" ");
-            l4 = Long.parseLong(as1[5]);
-            l5 = Long.parseLong(as1[2]) + Long.parseLong(as1[3]) + Long.parseLong(as1[4]) + Long.parseLong(as1[6]) + Long.parseLong(as1[7]) + Long.parseLong(as1[8]);
-            f = (100L * (l5 - l3)) / ((l5 + l4) - (l3 + l));
-            return f;
-        } catch (Exception e) {
-            e.printStackTrace();
+            RandomAccessFile localObject1 = new RandomAccessFile("/proc/stat", "r");
+            String[] localObject2 = localObject1.readLine().split(" ");
+            long l1 = Long.parseLong(localObject2[5]);
+            long l2 = Long.parseLong(localObject2[2]) + Long.parseLong(localObject2[3]) + Long.parseLong(localObject2[4]) + Long.parseLong(localObject2[6]) + Long.parseLong(localObject2[7]) + Long.parseLong(localObject2[8]);
+            try {
+                Thread.sleep(100L);
+                localObject1.seek(0L);
+                String str = localObject1.readLine();
+                localObject1.close();
+                String[] str1 = str.split(" ");
+                long l3 = Long.parseLong(str1[5]);
+                long l4 = Long.parseLong(str1[2]) + Long.parseLong(str1[3]) + Long.parseLong(str1[4]) + Long.parseLong(str1[6]) + Long.parseLong(str1[7]) + Long.parseLong(str1[8]);
+                return (float) (Long.valueOf(100L * (l4 - l2) / (l4 + l3 - (l2 + l1))).longValue());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return 0.0F;
+        } catch (Exception localException1) {
+            localException1.printStackTrace();
         }
-        return 0;
+        return 0.0F;
+    }
+
+    private void updateCpuInfoText(String paramString) {
+        Intent localIntent = new Intent(this, CpuService1.class);
+        localIntent.putExtra("update", true);
+        localIntent.putExtra("level", paramString);
+        startService(localIntent);
     }
 
     private void useCpu() {
-        (new Thread(new Runnable() {
-
+        new Thread(new Runnable() {
             public void run() {
-//                int i = 150000000;
-                int i = 999999999;
-                do {
+                int i = 500000000;
+                for (; ; ) {
                     if (i == 1) {
-                        runOnUiThread(new Runnable() {
-                                          public void run() {
-                                              mHandler.sendEmptyMessageDelayed(1002, 500L);
-                                          }
-                                      }
-                        );
-                        return;
+                        mHandler.sendEmptyMessageDelayed(1002, 500L);
+                        break;
                     }
-                    i--;
-                } while (true);
+                    i -= 1;
+                }
             }
-        }, "UseCpu")).start();
+        }, "UseCpu").start();
     }
 
-    @Override
-    public void run() {
-        mHandler.sendEmptyMessage(1001);
-    }
 }
