@@ -154,19 +154,21 @@ public class FileUtil {
      * @param fileName
      * @param txt
      */
-    public static void writeFile(File path, String fileName, String txt) {
+    public static String writeFile(File path, String fileName, String txt) {
         try {
             File file = new File(path, fileName);
             Log.e("result", "create path:" + file.getPath());
             FileOutputStream fos = new FileOutputStream(file, false);//false每次写入都会替换内容
-            byte[] b = txt.getBytes();
+            byte[] b = txt.trim().getBytes();
             fos.write(b);
             fos.close();
+            return file.getPath();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return "";
     }
 
     /**

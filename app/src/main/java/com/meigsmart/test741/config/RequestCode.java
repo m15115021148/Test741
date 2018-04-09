@@ -35,6 +35,8 @@ public class RequestCode {
     public static final String SAVE_RESULT_PATH = "MESInfo_FinalTest.txt";
     public static final String GET_CONFIG_PATH = "/DragonFire/BurnInInfo.txt";
 
+    public static final String SAVE_TEST_RESULT = "test_result.txt";
+
     public static final String RESULT_EMMC = "[EmmcTest]";
     public static final String RESULT_MEMORY = "[MemoryTest]";
     public static final String RESULT_AUDIO = "[AudioTest]";

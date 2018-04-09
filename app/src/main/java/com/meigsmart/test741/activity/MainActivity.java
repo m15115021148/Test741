@@ -128,7 +128,7 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
         String str = TextUtils.isEmpty(FileUtil.getSDPath(mContext, true))?"（请插入sd卡）":"";
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("提示");
-        builder.setMessage(Html.fromHtml("是否保存生成结果Log日志？"+"<font color='#ff0000'>"+str+"</font>"));
+        builder.setMessage(Html.fromHtml("是否保存生成测试结果日志？"+"<font color='#ff0000'>"+str+"</font>"));
         builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -146,10 +146,11 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
                     }
                 }
 
-
                 String result = getTestResultJson(MyApplication.getInstance().mDb.getAllData());
+                //save result test
+                FileUtil.writeFile(FileUtil.createFolder(FileUtil.getStoragePath()),RequestCode.SAVE_TEST_RESULT,result.trim());
 
-                String objectJson = getObjectJson(result, getAllResult(MyApplication.getInstance().mDb.getAllData()), productionCode, staffCode);
+                String objectJson = getObjectJson(result.trim(), getAllResult(MyApplication.getInstance().mDb.getAllData()), productionCode, staffCode);
 
                 FileUtil.writeFile(FileUtil.createFolder(FileUtil.getStoragePath()),RequestCode.SAVE_RESULT_PATH,objectJson);
 
@@ -159,6 +160,11 @@ public class MainActivity extends BaseActivity implements MainAdapter.OnMainCall
         builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+
+                String result = getTestResultJson(MyApplication.getInstance().mDb.getAllData());
+                //save result test
+                FileUtil.writeFile(FileUtil.createFolder(FileUtil.getStoragePath()),RequestCode.SAVE_TEST_RESULT,result.trim());
+
                 mHandler.sendEmptyMessageDelayed(1006,2000);
             }
         });
